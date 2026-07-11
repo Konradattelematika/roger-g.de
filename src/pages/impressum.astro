@@ -1,5 +1,4 @@
 ---
-// TODO: Echte Impressumsdaten von Roger/Management einholen (§ 5 DDG).
 import Layout from '../layouts/Layout.astro';
 ---
 
@@ -11,22 +10,23 @@ import Layout from '../layouts/Layout.astro';
     <div class="container legal">
       <h1 class="display">Impressum</h1>
 
-      <p class="placeholder-note">
-        Platzhalter – die vollständigen Angaben nach § 5 DDG werden vor
-        Veröffentlichung ergänzt.
-      </p>
-
       <h2>Angaben gemäß § 5 DDG</h2>
       <p>
-        [Name / Künstlermanagement]<br />
-        [Straße Hausnummer]<br />
-        [PLZ Ort]
+        Roger G<br />
+        Wertstraße 35<br />
+        18057 Rostock
       </p>
 
       <h2>Kontakt</h2>
       <p>
-        E-Mail: [kontakt@roger-g.de]
+        E-Mail: <a href="mailto:info@g-maltes.de">info@g-maltes.de</a>
       </p>
+
+      <h2>Verantwortlich</h2>
+      <p>Geschäftsführer: Gregor Kurtz</p>
+
+      <h2>Steuernummer</h2>
+      <p>079/111/05785</p>
 
       <p><a href="/">← Zurück zur Tour</a></p>
     </div>
@@ -46,12 +46,5 @@ import Layout from '../layouts/Layout.astro';
   .legal h2 {
     font-size: var(--text-lg);
     margin-top: var(--space-2);
-  }
-  .placeholder-note {
-    background: var(--card);
-    border: 1px dashed var(--line);
-    border-radius: var(--radius);
-    padding: var(--space-2);
-    color: var(--ink-dim);
   }
 </style>
