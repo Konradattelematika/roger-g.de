@@ -1,0 +1,35 @@
+---
+// Endlos-Ticker im Sticker-Tape-Look. Rein dekorativ (aria-hidden) –
+// der Inhalt steht sinngemäß bereits im Hero/Copy.
+// Für den nahtlosen Loop wird die Item-Liste zweimal gerendert (translateX -50%).
+interface Props {
+  /** Rotation des Bands, z. B. "-1.2deg" (Default) oder "1deg" */
+  rotate?: string;
+}
+const { rotate = '-1.2deg' } = Astro.props;
+
+const items = [
+  'Try Out Tour 26',
+  'Neues Material',
+  'Null Sicherheitsnetz',
+  '6 Städte',
+  'Was floppt, habt nur ihr gesehen',
+];
+---
+
+<div class="marquee" style={`--marquee-rotate: ${rotate}`} aria-hidden="true">
+  <div class="marquee-track">
+    {
+      [0, 1].map(() =>
+        items.map((t) => (
+          <>
+            <span class="marquee-item">{t}</span>
+            <svg class="marquee-star" viewBox="0 0 24 24">
+              <path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12C7 11 11 7 12 0Z" />
+            </svg>
+          </>
+        ))
+      )
+    }
+  </div>
+</div>

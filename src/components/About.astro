@@ -1,31 +1,52 @@
 ---
-// Kurzer Erklär-Block: Was ist eine Try-Out-Show?
+// Erklär-Block: Was ist eine Try-Out-Show? + Abschluss-CTA-Banner.
 // TODO: Copy mit Roger abstimmen, ggf. Foto/Video einbauen.
+import { tourDates } from '../data/tour';
+
+const cityCount = tourDates.length;
 ---
 
-<section class="section about" aria-labelledby="about-heading">
+<section class="section about" id="about" aria-labelledby="about-heading">
   <div class="container about-grid">
-    <h2 class="display about-title" id="about-heading" data-reveal>
-      Was ist eine <br />Try-Out-Show?
-    </h2>
-    <div class="about-copy" data-reveal>
-      <p>
+    <div class="about-head" data-reveal>
+      <p class="annotation">Ohne Netz, mit Zettel</p>
+      <h2 class="display about-title" id="about-heading">
+        Was ist eine <br />Try-Out-Show?
+      </h2>
+    </div>
+    <div class="about-copy">
+      <p data-reveal>
         Bevor ein Programm auf große Bühnen geht, muss es beweisen, dass es
         funktioniert. Genau das passiert hier: Roger spielt brandneues Material
         zum ersten Mal vor Publikum – mit Zettel in der Hand und ohne Garantie.
       </p>
-      <p>
-        <span class="annotation">Heißt für euch:</span> kleinere Läden, nähere
-        Bühne, günstigere Tickets – und Gags, die es so vielleicht nie wieder
-        zu sehen gibt.
+      <p data-reveal>
+        <strong>Heißt für euch:</strong> kleinere Läden, nähere Bühne,
+        günstigere Tickets – und Gags, die es so vielleicht nie wieder zu sehen
+        gibt.
       </p>
     </div>
+  </div>
+
+  <div class="container">
+    <aside class="cta-banner" data-reveal aria-label="Ticket-Hinweis">
+      <svg class="star cta-star" style="top: -0.9rem; left: 6%; --star-size: 1.8rem" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12C7 11 11 7 12 0Z" />
+      </svg>
+      <p class="cta-title display">
+        {cityCount} Städte. Ein Zettel. Null Garantie.
+      </p>
+      <p class="cta-sub">
+        Schnapp dir Tickets, bevor der Gag wieder gestrichen wird.
+      </p>
+      <a class="btn cta-btn" href="#termine">Alle Termine ansehen</a>
+    </aside>
   </div>
 </section>
 
 <footer class="footer">
   <div class="container footer-inner">
-    <p>© 2026 Roger G.</p>
+    <p>© 2026 Roger G. · Try Out Tour 26</p>
     <nav aria-label="Rechtliches">
       <a href="/impressum">Impressum</a>
       <a href="/datenschutz">Datenschutz</a>
@@ -37,6 +58,12 @@
   .about-grid {
     display: grid;
     gap: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+
+  .about-head {
+    display: grid;
+    gap: var(--space-1);
   }
 
   .about-title {
@@ -55,6 +82,49 @@
       grid-template-columns: 1fr 1.2fr;
       align-items: start;
     }
+  }
+
+  /* CTA-Banner: pinker Sticker quer über die Seite */
+  .cta-banner {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    gap: 0.6rem;
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-soft) 100%);
+    color: var(--ink-on-pink);
+    border-radius: calc(var(--radius) * 1.6);
+    padding: clamp(1.6rem, 4vw, 3rem);
+    rotate: -0.6deg;
+    box-shadow: 0 18px 50px rgb(47 26 41 / 0.4);
+  }
+
+  .cta-title {
+    color: var(--ink-on-pink);
+    text-shadow: none;
+    font-size: clamp(1.6rem, 1.1rem + 2.6vw, 3rem);
+    line-height: 1.05;
+  }
+
+  .cta-sub {
+    font-weight: 600;
+    font-size: var(--text-md);
+    max-width: 44rem;
+  }
+
+  /* Button invertiert: dunkles Plum auf Pink */
+  .cta-btn {
+    background: var(--ink-on-pink);
+    color: var(--pink-soft);
+    margin-top: 0.4rem;
+  }
+  .cta-btn:hover {
+    background: var(--plum-deep);
+    color: var(--ink);
+  }
+
+  .cta-star {
+    fill: var(--ink-on-pink);
+    filter: none;
   }
 
   .footer {

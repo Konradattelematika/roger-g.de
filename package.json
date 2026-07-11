@@ -13,8 +13,6 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
-    "@fontsource-variable/rubik": "^5.2.8",
-    "@fontsource/anton": "^5.2.7",
     "@fontsource/poppins": "^5.2.7",
     "@fontsource/titan-one": "^5.2.8",
     "astro": "^7.0.7",

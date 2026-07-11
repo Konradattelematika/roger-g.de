@@ -37,14 +37,28 @@ ERLEDIGT (2026-07-11): Die alte Platzhalter-Palette (Bühnenschwarz/Amber/Stempe
 wurde durch die Plakat-Palette ersetzt – siehe Tokens in `src/styles/global.css`
 (Signature-Pink `#e890c6`, Mauve/Plum-Verlauf, Weiß mit `--glow-pink`).
 
+ERLEDIGT (2026-07-11, Dynamik-Pass): Hero mobil = Vollbild-Plakatmotiv
+(textfreie Crops `public/img/motiv-*` via `scripts/crop-motiv.mjs`, nicht von
+Hand ersetzen), Desktop = Split mit schwebendem Poster. "Ungetestet" ist jetzt
+ein gefüllter Starburst-Sticker (`.burst`), dazu Marquee-Ticker (`Marquee.astro`),
+SplitText-Buchstaben-Intro, Parallax & orchestrierte Scroll-Sequenzen in
+`src/scripts/animations.ts`.
+
 - Signature-Element: Hauptplakat-Motiv im Hero + Bubble-Typo
 - Mobile-first: 390 px ist der primäre Viewport, Desktop ist die Erweiterung
 - `prefers-reduced-motion` wird respektiert (bereits in `animations.js` angelegt)
 
 ## Arbeitsregeln
 
-1. **Jede visuelle Änderung mit Playwright verifizieren** (MCP ist in `.mcp.json` konfiguriert):
+1. **Jede visuelle Änderung mit Playwright verifizieren** (MCP ist in `.mcp.json`
+   konfiguriert und startet über `scripts/mcp-playwright.sh`):
    Screenshot bei 390 px UND 1440 px Breite, erst dann als fertig betrachten.
+   Headless-Chromium braucht `source scripts/env.sh` (lokale Libs unter
+   `~/chrome-libs`, ohne root). Schnellste Wege: `scripts/shot.mjs` (Viewport/
+   Fullpage) und `scripts/scroll-shot.mjs` (scrollt zu Selektor, damit
+   ScrollTrigger-Animationen gefeuert haben). Achtung: Fullpage-Shots ohne
+   Scroll zeigen GSAP-Sektionen leer (Trigger nicht gefeuert) – für Sektionen
+   scroll-shot oder shot.mjs mit `--reduced` nutzen.
 2. Nach größeren Änderungen: `npx lighthouse http://localhost:4321 --view` –
    Ziel: Performance ≥ 95, SEO = 100, Accessibility ≥ 95.
 3. Tourdaten werden NUR in `src/data/tour.ts` gepflegt. Schema.org-Markup und
@@ -59,7 +73,7 @@ wurde durch die Plakat-Palette ersetzt – siehe Tokens in `src/styles/global.cs
       vom Plakat übernommen, Uhrzeit 20:00 ist nur Annahme)
 - [x] Design-Angleichung an Plakate durchführen (design-reference/README.md)
 - [x] Plakatmotiv als Hero-Bild aufbereiten (WebP/AVIF 480/768/1080 → `public/img/`)
-- [ ] OG-Image erstellen (1200×630) → `public/og.jpg`
+- [x] OG-Image erstellt (1200×630) → `public/og.jpg`
 - [ ] Finale Domain klären und in `astro.config.mjs` (`site`) setzen
 - [x] Impressum/Datenschutz verlinkt (Footer) – Seiten existieren als
       Platzhalter-Routen, echte Inhalte (§ 5 DDG, DSGVO) fehlen noch

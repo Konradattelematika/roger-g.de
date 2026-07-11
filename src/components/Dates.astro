@@ -49,9 +49,14 @@ const jsonLd = {
 };
 ---
 
-<section class="section" id="termine" aria-labelledby="termine-heading">
+<section class="section dates-section" id="termine" aria-labelledby="termine-heading">
+  <span class="watermark dates-watermark" aria-hidden="true">26</span>
+
   <div class="container">
-    <h2 class="display section-title" id="termine-heading">Termine</h2>
+    <div class="dates-head">
+      <h2 class="display section-title" id="termine-heading">Termine</h2>
+      <p class="annotation">Klein. Nah. Zum ersten Mal.</p>
+    </div>
 
     <ol class="dates">
       {
@@ -82,20 +87,44 @@ const jsonLd = {
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
 <style>
+  .dates-section {
+    position: relative;
+    overflow: clip;
+    /* weicher rosa Lichtkegel hinter den Karten */
+    background:
+      radial-gradient(60rem 30rem at 70% 0%, rgb(232 144 198 / 0.14), transparent 70%);
+  }
+
+  .dates-watermark {
+    top: -0.05em;
+    right: -0.08em;
+  }
+
+  .dates-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
   .section-title {
     font-size: var(--text-xl);
-    margin-bottom: var(--space-4);
   }
 
   .dates {
     list-style: none;
+    counter-reset: showNr;
     padding: 0;
     display: grid;
     gap: var(--space-2);
   }
 
-  /* Plakat-Übersetzung: Datum in Pink-Bubble, Stadt/Venue in fettem Weiß */
+  /* Plakat-Übersetzung: Datum in Pink-Bubble, Stadt/Venue in fettem Weiß.
+     Karten wie schief aufgeklebte Sticker + Hover-Lift. */
   .date-row {
+    counter-increment: showNr;
+    position: relative;
     display: grid;
     gap: var(--space-1);
     background: var(--card);
@@ -103,6 +132,35 @@ const jsonLd = {
     border-radius: var(--radius);
     padding: var(--space-3);
     backdrop-filter: blur(4px);
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease;
+  }
+  .date-row:nth-child(odd) {
+    rotate: -0.35deg;
+  }
+  .date-row:nth-child(even) {
+    rotate: 0.35deg;
+  }
+  .date-row:hover {
+    transform: translateY(-4px);
+    border-color: rgb(232 144 198 / 0.65);
+    background: rgb(255 255 255 / 0.13);
+    box-shadow: 0 14px 34px rgb(47 26 41 / 0.35), 0 0 30px rgb(232 144 198 / 0.2);
+  }
+
+  /* Laufende Nummer als Watermark in der Kartenecke */
+  .date-row::after {
+    content: '0' counter(showNr);
+    position: absolute;
+    top: 0.4rem;
+    right: 0.9rem;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    color: rgb(255 255 255 / 0.14);
+    pointer-events: none;
   }
 
   .date-when {
@@ -152,8 +210,11 @@ const jsonLd = {
     align-self: center;
   }
 
+  /* Mobil: Ticket-Button volle Breite → klare Tap-Fläche */
   .date-btn {
-    justify-self: start;
+    justify-self: stretch;
+    text-align: center;
+    margin-top: var(--space-1);
   }
 
   /* Ab Tablet: dreispaltige Zeile */
@@ -165,6 +226,14 @@ const jsonLd = {
     }
     .date-btn {
       justify-self: end;
+      margin-top: 0;
+    }
+    .date-row::after {
+      top: auto;
+      bottom: 0.3rem;
+      right: auto;
+      left: 0.9rem;
+      font-size: 1.3rem;
     }
   }
 </style>
