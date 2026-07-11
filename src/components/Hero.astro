@@ -1,0 +1,152 @@
+---
+// Hero im Plakat-Look: Bubble-Headline links, Tourplakat als Bild rechts.
+// Das Plakat (design-reference/1.png) ist zu WebP/AVIF aufbereitet in public/img/.
+// LCP-Bild → eager + fetchpriority high.
+---
+
+<header class="hero">
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <p class="annotation" data-hero="kicker">Stand Up Comedy · Neues Programm. Null Sicherheitsnetz.</p>
+
+      <h1 class="display hero-title">
+        <span class="hero-line" data-hero="line">Roger&nbsp;G.</span>
+        <span class="hero-line hero-line-sub subline" data-hero="line">
+          Try&nbsp;Out <span class="scratched">Tour</span> Tour&nbsp;26
+        </span>
+      </h1>
+
+      <p class="hero-sub" data-hero="sub">
+        Roger testet sein neues Material live – ungefiltert, ungeprobt,
+        auf kleinen Bühnen. Was funktioniert, bleibt. Was floppt, habt nur ihr gesehen.
+      </p>
+
+      <a class="btn" href="#termine" data-hero="cta">Zu den Terminen</a>
+    </div>
+
+    <div class="hero-poster" data-hero="poster">
+      <picture>
+        <source
+          type="image/avif"
+          srcset="/img/plakat-480.avif 480w, /img/plakat-768.avif 768w, /img/plakat-1080.avif 1080w"
+          sizes="(min-width: 900px) 34vw, 78vw"
+        />
+        <source
+          type="image/webp"
+          srcset="/img/plakat-480.webp 480w, /img/plakat-768.webp 768w, /img/plakat-1080.webp 1080w"
+          sizes="(min-width: 900px) 34vw, 78vw"
+        />
+        <img
+          src="/img/plakat-768.webp"
+          width="768"
+          height="1086"
+          alt="Tourplakat: Roger G lehnt sich mit Cap und Sonnenbrille im Fisheye-Look vor einem pastellfarbenen Plattenbau ins Bild."
+          loading="eager"
+          fetchpriority="high"
+        />
+      </picture>
+    </div>
+  </div>
+
+  <div class="stamp" aria-hidden="true" data-hero="stamp">Ungetestet</div>
+</header>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .hero-inner {
+    padding-block: var(--space-4);
+    display: grid;
+    gap: var(--space-4);
+    align-items: center;
+  }
+
+  .hero-copy {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+  }
+
+  /* Platz für den Stempel oben rechts freihalten (schmale Viewports) */
+  .hero-copy .annotation {
+    max-width: calc(100% - 5.5rem);
+  }
+
+  .hero-title {
+    font-size: var(--text-hero);
+    display: grid;
+    gap: 0.1em;
+  }
+
+  .hero-line {
+    display: block;
+  }
+
+  /* Subline wie auf dem Plakat: weiß, fett, Glow – kleiner als der Bubble-Titel */
+  .hero-line-sub {
+    font-family: var(--font-body);
+    font-size: 0.42em;
+    line-height: 1.15;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-sub {
+    max-width: 34rem;
+    color: var(--ink-dim);
+    font-size: var(--text-lg);
+    line-height: 1.45;
+    font-weight: 400;
+  }
+
+  /* Plakat als physisches Poster: leicht gedreht, rosa Glow */
+  .hero-poster {
+    justify-self: center;
+    width: min(78vw, 24rem);
+    transform: rotate(2.5deg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow:
+      0 10px 40px rgb(47 26 41 / 0.4),
+      0 0 60px rgb(232 144 198 / 0.35);
+  }
+  .hero-poster img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* Stempel im Plakat-Stil: Pink-Bubble statt Rot-Stencil */
+  .stamp {
+    position: absolute;
+    top: clamp(0.75rem, 3vw, 2.5rem);
+    right: clamp(-0.7rem, -0.5vw, -0.3rem);
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    font-size: clamp(1.1rem, 3.2vw, 2rem);
+    color: var(--pink);
+    text-shadow: var(--glow-pink);
+    border: 4px solid var(--pink);
+    border-radius: 999px;
+    padding: 0.25em 0.7em;
+    transform: rotate(10deg);
+    box-shadow: 0 0 22px rgb(232 144 198 / 0.4), inset 0 0 14px rgb(232 144 198 / 0.25);
+    opacity: 0.95;
+  }
+
+  /* Desktop: Text links, Plakat rechts */
+  @media (min-width: 900px) {
+    .hero-inner {
+      grid-template-columns: 1.25fr 1fr;
+      gap: var(--space-5);
+    }
+    .hero-poster {
+      width: min(34vw, 26rem);
+      justify-self: end;
+    }
+  }
+</style>

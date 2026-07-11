@@ -1,0 +1,57 @@
+---
+// TODO: Echte Impressumsdaten von Roger/Management einholen (§ 5 DDG).
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Impressum | Roger G. – Try Out Tour 26"
+  description="Impressum der Try-Out-Tour-Seite von Roger G."
+>
+  <main class="section">
+    <div class="container legal">
+      <h1 class="display">Impressum</h1>
+
+      <p class="placeholder-note">
+        Platzhalter – die vollständigen Angaben nach § 5 DDG werden vor
+        Veröffentlichung ergänzt.
+      </p>
+
+      <h2>Angaben gemäß § 5 DDG</h2>
+      <p>
+        [Name / Künstlermanagement]<br />
+        [Straße Hausnummer]<br />
+        [PLZ Ort]
+      </p>
+
+      <h2>Kontakt</h2>
+      <p>
+        E-Mail: [kontakt@roger-g.de]
+      </p>
+
+      <p><a href="/">← Zurück zur Tour</a></p>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .legal {
+    max-width: 42rem;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .legal h1 {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-2);
+  }
+  .legal h2 {
+    font-size: var(--text-lg);
+    margin-top: var(--space-2);
+  }
+  .placeholder-note {
+    background: var(--card);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    padding: var(--space-2);
+    color: var(--ink-dim);
+  }
+</style>

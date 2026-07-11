@@ -1,0 +1,78 @@
+---
+// Kurzer Erklär-Block: Was ist eine Try-Out-Show?
+// TODO: Copy mit Roger abstimmen, ggf. Foto/Video einbauen.
+---
+
+<section class="section about" aria-labelledby="about-heading">
+  <div class="container about-grid">
+    <h2 class="display about-title" id="about-heading" data-reveal>
+      Was ist eine <br />Try-Out-Show?
+    </h2>
+    <div class="about-copy" data-reveal>
+      <p>
+        Bevor ein Programm auf große Bühnen geht, muss es beweisen, dass es
+        funktioniert. Genau das passiert hier: Roger spielt brandneues Material
+        zum ersten Mal vor Publikum – mit Zettel in der Hand und ohne Garantie.
+      </p>
+      <p>
+        <span class="annotation">Heißt für euch:</span> kleinere Läden, nähere
+        Bühne, günstigere Tickets – und Gags, die es so vielleicht nie wieder
+        zu sehen gibt.
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <p>© 2026 Roger G.</p>
+    <nav aria-label="Rechtliches">
+      <a href="/impressum">Impressum</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .about-grid {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .about-title {
+    font-size: var(--text-xl);
+  }
+
+  .about-copy {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 38rem;
+    color: var(--ink-dim);
+  }
+
+  @media (min-width: 820px) {
+    .about-grid {
+      grid-template-columns: 1fr 1.2fr;
+      align-items: start;
+    }
+  }
+
+  .footer {
+    border-top: 1px solid var(--line);
+    padding-block: var(--space-3);
+    color: var(--ink-dim);
+    font-size: var(--text-sm);
+  }
+
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    justify-content: space-between;
+  }
+
+  .footer nav {
+    display: flex;
+    gap: var(--space-2);
+  }
+</style>

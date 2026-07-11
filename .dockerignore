@@ -1,0 +1,7 @@
+node_modules
+dist
+shots
+design-reference
+.astro
+.git
+lighthouse.json

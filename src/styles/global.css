@@ -1,0 +1,181 @@
+/* ── Design-Tokens ──────────────────────────────────────────────
+   Palette nach den offiziellen Tourplakaten (design-reference/):
+   Pink/Mauve-Verlauf als Rahmen, Signature-Pink für Headlines/CTAs,
+   Weiß mit rosa Neon-Glow für Sublines. Bunt & frech, NICHT dunkel. */
+:root {
+  /* Plakat-Palette */
+  --pink: #e890c6;          /* Signature-Pink – Titel, Daten, CTAs */
+  --pink-soft: #f5bcdf;     /* helles Pink – Hover, Verlaufs-Highlights */
+  --mauve: #c67fab;         /* Rahmen-Mauve (Plakatrand, mittel) */
+  --plum: #7a5069;          /* Seitengrund – dunkles Mauve für Kontrast */
+  --plum-deep: #55374a;     /* Verlaufsende, Flächen */
+  --ink: #ffffff;           /* Primärtext – Weiß wie Plakat-Sublines */
+  --ink-dim: rgb(255 255 255 / 0.82);  /* Sekundärtext */
+  --ink-on-pink: #2f1a29;   /* dunkles Plum auf Pink-Flächen (CTAs) */
+  --card: rgb(255 255 255 / 0.09);     /* Karten auf Verlauf */
+  --line: rgb(255 255 255 / 0.22);     /* Hairlines */
+
+  /* Neon-Glow (Plakat: weiße Schrift mit rosa Schein) */
+  --glow-pink: 0 0 14px rgb(232 144 198 / 0.65), 0 0 38px rgb(232 144 198 / 0.35);
+  --shadow-title: 0.04em 0.05em 0 rgb(47 26 41 / 0.45); /* weicher Schatten hinter Bubble-Titeln */
+
+  /* Fonts: Titan One = Bubble-Display (Plakattitel), Poppins = fette Sans */
+  --font-display: 'Titan One', 'Comic Sans MS', cursive;
+  --font-body: 'Poppins', system-ui, sans-serif;
+
+  /* Fluider Typo-Scale, mobile-first */
+  --text-xs: 0.8rem;
+  --text-sm: 0.95rem;
+  --text-md: clamp(1rem, 0.9rem + 0.5vw, 1.15rem);
+  --text-lg: clamp(1.3rem, 1.1rem + 1vw, 1.8rem);
+  --text-xl: clamp(2.2rem, 1.3rem + 5vw, 4.5rem);
+  --text-hero: clamp(2.9rem, 1.6rem + 9.5vw, 7.5rem);
+
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.75rem;
+  --space-4: 3rem;
+  --space-5: 5.5rem;
+
+  --radius: 14px;           /* runder – passt zur Bubble-Anmutung */
+  --container: 72rem;
+}
+
+/* ── Reset & Basis ──────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  color-scheme: dark; /* helle Schrift auf Mauve – Form-Controls dunkel lassen */
+  scroll-behavior: smooth;
+  background: var(--plum-deep); /* füllt Canvas unterhalb kurzer Seiten */
+}
+
+body {
+  /* Plakatrahmen als Seitengrund: helles Rosa am Kopf → Plum.
+     no-repeat + html-Grundfarbe: kein Kachel-Bruch auf kurzen Seiten */
+  min-height: 100svh;
+  background-image:
+    linear-gradient(180deg, #cf94b8 0, #a06a8b 26rem, var(--plum) 64rem, var(--plum-deep) 100%);
+  background-repeat: no-repeat;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.container {
+  width: min(100% - 2.5rem, var(--container));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: var(--space-5);
+}
+
+/* Display-Headlines: Bubble-Typo wie der Plakattitel */
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 1.02;
+  letter-spacing: 0.015em;
+  color: var(--pink);
+  text-shadow: var(--shadow-title);
+}
+
+/* Subline-Stil: Weiß, fett, uppercase, rosa Neon-Glow (Plakat-Subline) */
+.subline {
+  color: var(--ink);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-shadow: var(--glow-pink);
+}
+
+/* Marker-Annotation (handschriftliche Anmutung per Rotation) */
+.annotation {
+  display: inline-block;
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  text-shadow: var(--glow-pink);
+  transform: rotate(-2deg);
+}
+
+/* Durchgestrichen – "verworfene" Wörter im Try-Out-Stil */
+.scratched {
+  position: relative;
+  color: rgb(255 255 255 / 0.45);
+  white-space: nowrap;
+  text-shadow: none;
+}
+.scratched::after {
+  content: '';
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  top: 52%;
+  height: 0.09em;
+  background: var(--ink);
+  border-radius: 999px;
+  transform: rotate(-1.5deg);
+}
+
+/* CTA-Button: Signature-Pink, bubble-rund, dunkle Schrift (Kontrast) */
+.btn {
+  display: inline-block;
+  background: var(--pink);
+  color: var(--ink-on-pink);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--text-md);
+  text-decoration: none;
+  padding: 0.85em 1.7em;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgb(47 26 41 / 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn:hover {
+  background: var(--pink-soft);
+  transform: translateY(-2px) rotate(-0.5deg);
+  box-shadow: 0 8px 28px rgb(232 144 198 / 0.5);
+}
+
+/* Reduced Motion: alle Animationen abschalten */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

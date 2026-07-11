@@ -1,0 +1,66 @@
+---
+// TODO: Datenschutzerklärung final ausarbeiten (abhängig von Hosting,
+// Ticket-Anbieter-Embeds und ggf. Analytics – aktuell nichts davon aktiv).
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Datenschutz | Roger G. – Try Out Tour 26"
+  description="Datenschutzerklärung der Try-Out-Tour-Seite von Roger G."
+>
+  <main class="section">
+    <div class="container legal">
+      <h1 class="display">Datenschutz</h1>
+
+      <p class="placeholder-note">
+        Platzhalter – die vollständige Datenschutzerklärung wird vor
+        Veröffentlichung ergänzt.
+      </p>
+
+      <h2>Grundsätzliches</h2>
+      <p>
+        Diese Seite ist eine statische Info-Seite ohne Konto, Login oder
+        Tracking. Es werden keine Cookies gesetzt und keine Analyse-Tools
+        eingebunden.
+      </p>
+
+      <h2>Hosting</h2>
+      <p>
+        Beim Aufruf der Seite verarbeitet der Hosting-Anbieter technisch
+        notwendige Daten (z.&nbsp;B. IP-Adresse in Server-Logs).
+        [Anbieter und Details ergänzen.]
+      </p>
+
+      <h2>Ticketlinks</h2>
+      <p>
+        Ticket-Buttons führen zu externen Vorverkaufsstellen. Dort gelten die
+        Datenschutzbestimmungen des jeweiligen Anbieters.
+      </p>
+
+      <p><a href="/">← Zurück zur Tour</a></p>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .legal {
+    max-width: 42rem;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .legal h1 {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-2);
+  }
+  .legal h2 {
+    font-size: var(--text-lg);
+    margin-top: var(--space-2);
+  }
+  .placeholder-note {
+    background: var(--card);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    padding: var(--space-2);
+    color: var(--ink-dim);
+  }
+</style>
