@@ -1,0 +1,80 @@
+---
+// Newsletter-/Warteliste-Anmeldung via Klaviyo Embedded Form (ID ULLBYj).
+// Der Klaviyo-Onsite-Loader (im Layout-Head) rendert den leeren
+// .klaviyo-form-* Div automatisch. Deshalb steht hier nur der Container +
+// Rahmen-Design – Formularinhalt/Styling kommt aus dem Klaviyo-Editor.
+---
+
+<section class="section signup" id="anmelden" aria-labelledby="signup-heading">
+  <span class="watermark signup-watermark" aria-hidden="true">!</span>
+
+  <div class="container signup-inner">
+    <div class="signup-head" data-reveal>
+      <p class="annotation">Nichts mehr verpassen</p>
+      <h2 class="display signup-title" id="signup-heading">
+        Bleib auf dem Zettel
+      </h2>
+      <p class="signup-sub">
+        Trag dich ein und sei der Erste, der von neuen Terminen erfährt – oder
+        eine Nachricht bekommt, wenn für eine ausverkaufte Show wieder Tickets
+        frei werden.
+      </p>
+    </div>
+
+    <!-- Klaviyo Embedded Form – wird vom Onsite-Script befüllt -->
+    <div class="klaviyo-form-ULLBYj signup-form"></div>
+  </div>
+</section>
+
+<style>
+  .signup {
+    position: relative;
+    overflow: clip;
+    background:
+      radial-gradient(50rem 26rem at 30% 100%, rgb(232 144 198 / 0.14), transparent 70%);
+  }
+
+  .signup-watermark {
+    top: -0.08em;
+    left: -0.04em;
+    color: rgb(255 255 255 / 0.05);
+  }
+
+  .signup-inner {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 44rem;
+  }
+
+  .signup-head {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .signup-title {
+    font-size: var(--text-xl);
+  }
+
+  .signup-sub {
+    color: var(--ink-dim);
+    max-width: 38rem;
+  }
+
+  /* Karten-Rahmen im Sticker-Look – gibt dem Klaviyo-Formular Halt,
+     falls dessen Editor-Styling transparent/randlos ist. */
+  .signup-form {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: clamp(1.1rem, 3vw, 1.8rem);
+    backdrop-filter: blur(4px);
+    rotate: -0.4deg;
+  }
+  /* Leerer Container erzeugt keinen sichtbaren Kasten, bevor Klaviyo lädt */
+  .signup-form:empty {
+    background: none;
+    border: none;
+    padding: 0;
+    backdrop-filter: none;
+  }
+</style>
