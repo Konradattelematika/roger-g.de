@@ -40,6 +40,14 @@ const ogImageUrl = new URL(ogImage, Astro.site);
 
     <meta name="theme-color" content="#7a5069" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Klaviyo Onsite (company_id UXG8NH) -->
+    <script is:inline async type="text/javascript" src="https://static.klaviyo.com/onsite/js/UXG8NH/klaviyo.js?company_id=UXG8NH"></script>
+    <script is:inline type="text/javascript">
+      // Initialize Klaviyo object on page load
+      !function(){if(!window.klaviyo){window._klOnsite=window._klOnsite||[];try{window.klaviyo=new Proxy({},{get:function(n,i){return"push"===i?function(){var n;(n=window._klOnsite).push.apply(n,arguments)}:function(){for(var n=arguments.length,o=new Array(n),w=0;w<n;w++)o[w]=arguments[w];var t="function"==typeof o[o.length-1]?o.pop():void 0,e=new Promise((function(n){window._klOnsite.push([i].concat(o,[function(i){t&&t(i),n(i)}]))}));return e}}})}catch(n){window.klaviyo=window.klaviyo||[],window.klaviyo.push=function(){var n;(n=window._klOnsite).push.apply(n,arguments)}}}}();
+    </script>
+
     <slot name="head" />
   </head>
   <body>
