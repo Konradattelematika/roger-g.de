@@ -153,23 +153,25 @@ if (!prefersReducedMotion) {
     heroScrub.to('[data-hero="media"] img', { yPercent: -6 }, 0);
   }
 
-  // ── Termin-Sektion: EINE orchestrierte Scroll-Sequenz ──────────
+  // ── Termin-Sektionen: je EINE orchestrierte Scroll-Sequenz ─────
   // Headline zieht auf, Reihen kaskadieren, die Bubble-Daten "stempeln" nach.
-  if (document.querySelector('#termine')) {
+  // Gilt für jede .dates-section (Try Out Tour + So Freunde).
+  gsap.utils.toArray<HTMLElement>('.dates-section').forEach((section) => {
+    const q = gsap.utils.selector(section);
     const datesTl = gsap.timeline({
       defaults: { ease: 'power2.out' },
-      scrollTrigger: { trigger: '#termine', start: 'top 75%' },
+      scrollTrigger: { trigger: section, start: 'top 75%' },
     });
     datesTl
-      .from('#termine .section-title', { y: 40, autoAlpha: 0, duration: 0.5 })
-      .from('#termine .annotation', { x: -18, autoAlpha: 0, duration: 0.4 }, '-=0.25')
+      .from(q('.section-title'), { y: 40, autoAlpha: 0, duration: 0.5 })
+      .from(q('.annotation'), { x: -18, autoAlpha: 0, duration: 0.4 }, '-=0.25')
       .from(
-        '#termine .date-row',
+        q('.date-row'),
         { y: 36, autoAlpha: 0, duration: 0.55, stagger: 0.09 },
         '-=0.15'
       )
       .from(
-        '#termine .date-big',
+        q('.date-big'),
         {
           scale: 0.55,
           rotate: -6,
@@ -181,18 +183,21 @@ if (!prefersReducedMotion) {
         '<0.12'
       );
 
-    // Watermark "26" wandert langsam mit dem Scroll
-    gsap.to('.dates-watermark', {
-      yPercent: 24,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '#termine',
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: true,
-      },
-    });
-  }
+    // Watermark wandert langsam mit dem Scroll
+    const watermark = q('.dates-watermark');
+    if (watermark.length) {
+      gsap.to(watermark, {
+        yPercent: 24,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
+    }
+  });
 
   // ── Generische Scroll-Reveals ──────────────────────────────────
   gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) => {

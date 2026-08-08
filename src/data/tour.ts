@@ -1,7 +1,12 @@
 // Zentrale Datenquelle für alle Tourtermine.
 // UI und Schema.org-Markup werden hieraus generiert – Termine NUR hier pflegen.
-// Quelle: Übersichtsplakat "Try Out Tour 26" (design-reference/14.png).
-// TODO: Uhrzeiten (aktuell Annahme 20:00) und echte Ticketlinks ergänzen!
+//
+// Quellen (recherchiert 2026-08-08):
+//  - Try Out Tour: Eventim-Artist-Seite 4096399 + Reservix + Venue-VVK.
+//    Nicht alle Shows laufen über Eventim (Leer/Mülheim = Reservix,
+//    Wermelskirchen = bergisch-live, Saarlouis = Kulturamt der Stadt).
+//  - So Freunde!: Eventim-Artist-Seite 3763357 (Produktgruppe), Links mit
+//    Affiliate-Code ?affiliate=TUG (wie vom Betreiber vorgegeben).
 
 export interface TourDate {
   /** ISO-Datum mit Uhrzeit, z. B. "2026-10-02T20:00:00+02:00" */
@@ -15,6 +20,7 @@ export interface TourDate {
   soldOut?: boolean;
 }
 
+// ── Try Out Tour 26 (Haupttour dieser Seite) ──────────────────────
 export const tourName = 'Roger G – Try Out Tour 26';
 
 export const tourDescription =
@@ -26,36 +32,90 @@ export const tourDates: TourDate[] = [
     date: '2026-09-11T20:00:00+02:00',
     city: 'Schleswig',
     venue: 'Krögers Heimat',
-    ticketUrl: 'https://roger-g.de/#tickets', // TODO
+    ticketUrl:
+      'https://www.eventim.de/event/roger-g-try-out-tour-kroegers-heimat-21149527/?affiliate=TUG',
   },
   {
     date: '2026-10-02T20:00:00+02:00',
     city: 'Leer',
     venue: 'Zollhaus',
-    ticketUrl: 'https://roger-g.de/#tickets', // TODO
+    ticketUrl:
+      'https://www.reservix.de/tickets-roger-g-try-out-tour-2026-in-leer-zollhaus-am-2-10-2026/e2533094',
   },
   {
     date: '2026-10-03T20:00:00+02:00',
     city: 'Wermelskirchen',
     venue: 'Kattwinkelsche Fabrik',
-    ticketUrl: 'https://roger-g.de/#tickets', // TODO
+    // Venue-VVK (bergisch-live) – nicht über Eventim/Reservix erhältlich.
+    ticketUrl: 'https://www.bergisch-live.de/Ort/470',
   },
   {
     date: '2026-10-04T20:00:00+02:00',
     city: 'Mülheim an der Ruhr',
     venue: 'Ringlokschuppen Ruhr',
-    ticketUrl: 'https://roger-g.de/#tickets', // TODO
+    ticketUrl:
+      'https://www.reservix.de/tickets-roger-g-try-out-tour-in-muelheim-an-der-ruhr-ringlokschuppen-ruhr-buehne-1-am-4-10-2026/e2549957',
   },
   {
     date: '2026-10-08T20:00:00+02:00',
     city: 'Flensburg',
     venue: 'Kühlhaus',
-    ticketUrl: 'https://roger-g.de/#tickets', // TODO
+    ticketUrl:
+      'https://www.eventim.de/event/roger-g-try-out-tour-kuehlhaus-21344792/?affiliate=TUG',
   },
   {
     date: '2026-10-10T20:00:00+02:00',
     city: 'Saarlouis',
     venue: 'Theater am Ring',
-    ticketUrl: 'https://roger-g.de/#tickets', // TODO
+    // Präsentiert vom Kulturamt der Kreisstadt Saarlouis – VVK über die Stadt.
+    ticketUrl: 'https://www.saarlouis.de/rathaus/aktuelles/theater-am-ring/',
+  },
+];
+
+// ── So Freunde! (aktuelle Tour, zusätzlich auf der Seite gezeigt) ──
+// Kommende Eventim-Termine (Stand 2026-08-08), Links mit Affiliate ?affiliate=TUG.
+export const soFreundeName = 'Roger G – So Freunde!';
+
+export const soFreundeDescription =
+  'Die erste große Live-Show von Roger G: schräge Geschichten, wilde ' +
+  'Zeichnungen und jede Menge Chaos – Stand Up zwischen Kluger-Quatsch und ' +
+  'Grenzüberschreitung.';
+
+export const soFreundeDates: TourDate[] = [
+  {
+    date: '2026-09-19T19:30:00+02:00',
+    city: 'Neuss',
+    venue: 'Landesgartenschau-Gelände',
+    ticketUrl:
+      'https://www.eventim.de/event/roger-g-so-freunde-landesgartenschau-gelaende-neuss-20443572/?affiliate=TUG',
+    soldOut: true,
+  },
+  {
+    date: '2026-09-27T19:00:00+02:00',
+    city: 'Erfurt',
+    venue: 'DASDIE Brettl',
+    ticketUrl:
+      'https://www.eventim.de/event/roger-g-so-freunde-dasdie-brettl-21317065/?affiliate=TUG',
+  },
+  {
+    date: '2026-09-28T20:00:00+02:00',
+    city: 'Jena',
+    venue: 'F-Haus',
+    ticketUrl:
+      'https://www.eventim.de/event/roger-g-so-freunde-f-haus-21311075/?affiliate=TUG',
+  },
+  {
+    date: '2026-11-01T19:00:00+01:00',
+    city: 'Köln',
+    venue: 'GLORIA',
+    ticketUrl:
+      'https://www.eventim.de/event/roger-g-so-freunde-gloria-21685381/?affiliate=TUG',
+  },
+  {
+    date: '2026-11-02T20:00:00+01:00',
+    city: 'Dortmund',
+    venue: 'FZW / Freizeitzentrum West',
+    ticketUrl:
+      'https://www.eventim.de/event/roger-g-so-freunde-fzw-freizeitzentrum-west-20705450/?affiliate=TUG',
   },
 ];

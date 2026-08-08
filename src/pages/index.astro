@@ -2,9 +2,17 @@
 import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.astro';
 import Marquee from '../components/Marquee.astro';
-import Dates from '../components/Dates.astro';
+import TourDates from '../components/TourDates.astro';
 import Signup from '../components/Signup.astro';
 import About from '../components/About.astro';
+import {
+  tourName,
+  tourDescription,
+  tourDates,
+  soFreundeName,
+  soFreundeDescription,
+  soFreundeDates,
+} from '../data/tour';
 ---
 
 <Layout
@@ -14,7 +22,25 @@ import About from '../components/About.astro';
   <main>
     <Hero />
     <Marquee />
-    <Dates />
+    <TourDates
+      id="termine"
+      heading="Termine"
+      annotation="Klein. Nah. Zum ersten Mal."
+      watermark="26"
+      schemaName={tourName}
+      schemaDescription={tourDescription}
+      dates={tourDates}
+    />
+    <TourDates
+      id="so-freunde"
+      heading="So Freunde!"
+      annotation="Die große Tour"
+      watermark="!"
+      schemaName={soFreundeName}
+      schemaDescription={soFreundeDescription}
+      dates={soFreundeDates}
+      note="Die ausverkaufte Show, mit der alles anfing – schräge Geschichten, wilde Zeichnungen, jede Menge Chaos. Hier sind die letzten Termine 2026."
+    />
     <Signup />
     <About />
   </main>

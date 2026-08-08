@@ -1,5 +1,24 @@
 ---
-import { tourDates, tourName, tourDescription } from '../data/tour';
+import type { TourDate } from '../data/tour';
+
+interface Props {
+  /** Anker-ID der Sektion, z. B. "termine" */
+  id: string;
+  heading: string;
+  annotation: string;
+  /** Großes Hintergrund-Wasserzeichen (z. B. "26" oder "!") */
+  watermark: string;
+  /** Tour-Name für Schema.org */
+  schemaName: string;
+  /** Tour-Beschreibung für Schema.org */
+  schemaDescription: string;
+  dates: TourDate[];
+  /** Optionaler Einleitungssatz unter der Headline */
+  note?: string;
+}
+
+const { id, heading, annotation, watermark, schemaName, schemaDescription, dates, note } =
+  Astro.props;
 
 // Datum wie auf dem Plakat: "11 SEP" groß in Bubble, Wochentag + Jahr klein
 const dayFmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit' });
@@ -19,10 +38,10 @@ const posterDate = (iso: string) => {
 // Schema.org: eine ComedyEvent-Entity pro Termin → Rich Results in Google
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@graph': tourDates.map((d) => ({
+  '@graph': dates.map((d) => ({
     '@type': 'ComedyEvent',
-    name: `${tourName} – ${d.city}`,
-    description: tourDescription,
+    name: `${schemaName} – ${d.city}`,
+    description: schemaDescription,
     startDate: d.date,
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
@@ -49,18 +68,19 @@ const jsonLd = {
 };
 ---
 
-<section class="section dates-section" id="termine" aria-labelledby="termine-heading">
-  <span class="watermark dates-watermark" aria-hidden="true">26</span>
+<section class="section dates-section" id={id} aria-labelledby={`${id}-heading`}>
+  <span class="watermark dates-watermark" aria-hidden="true">{watermark}</span>
 
   <div class="container">
     <div class="dates-head">
-      <h2 class="display section-title" id="termine-heading">Termine</h2>
-      <p class="annotation">Klein. Nah. Zum ersten Mal.</p>
+      <h2 class="display section-title" id={`${id}-heading`}>{heading}</h2>
+      <p class="annotation">{annotation}</p>
     </div>
+    {note && <p class="dates-note">{note}</p>}
 
     <ol class="dates">
       {
-        tourDates.map((d) => (
+        dates.map((d) => (
           <li class="date-row">
             <time class="date-when" datetime={d.date}>
               <span class="date-big">{posterDate(d.date).big}</span>
@@ -73,7 +93,7 @@ const jsonLd = {
             {d.soldOut ? (
               <span class="date-soldout">Ausverkauft</span>
             ) : (
-              <a class="btn date-btn" href={d.ticketUrl}>
+              <a class="btn date-btn" href={d.ticketUrl} target="_blank" rel="noopener">
                 Tickets für {d.city}
               </a>
             )}
@@ -105,6 +125,13 @@ const jsonLd = {
     flex-wrap: wrap;
     align-items: baseline;
     gap: var(--space-1) var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .dates-note {
+    color: var(--ink-dim);
+    max-width: 42rem;
+    margin-top: calc(var(--space-4) * -1 + var(--space-1));
     margin-bottom: var(--space-4);
   }
 
