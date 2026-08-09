@@ -83,6 +83,20 @@ export const soFreundeDescription =
 
 export const soFreundeDates: TourDate[] = [
   {
+    date: '2026-09-16T20:00:00+02:00',
+    city: 'München',
+    venue: 'Technikum',
+    ticketUrl:
+      'https://www.ticketmaster.de/event/roger-g-so-freunde-tickets/910749789',
+  },
+  {
+    date: '2026-09-17T20:15:00+02:00',
+    city: 'Stuttgart',
+    venue: 'Theaterhaus (Halle T2)',
+    ticketUrl:
+      'https://www.ticketmaster.de/event/roger-g-so-freunde-tickets/627091708',
+  },
+  {
     date: '2026-09-19T19:30:00+02:00',
     city: 'Neuss',
     venue: 'Landesgartenschau-Gelände',
@@ -117,5 +131,12 @@ export const soFreundeDates: TourDate[] = [
     venue: 'FZW / Freizeitzentrum West',
     ticketUrl:
       'https://www.eventim.de/event/roger-g-so-freunde-fzw-freizeitzentrum-west-20705450/?affiliate=TUG',
+  },
+  {
+    date: '2026-11-06T20:00:00+01:00',
+    city: 'Berlin',
+    venue: 'PUNCH L!NE Club',
+    ticketUrl:
+      'https://www.ticketmaster.de/event/roger-g-so-freunde-tickets/1977173460',
   },
 ];
