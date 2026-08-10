@@ -5,8 +5,8 @@
 //  - Try Out Tour: Eventim-Artist-Seite 4096399 + Reservix + Venue-VVK.
 //    Nicht alle Shows laufen über Eventim (Leer/Mülheim = Reservix,
 //    Wermelskirchen = bergisch-live, Saarlouis = Kulturamt der Stadt).
-//  - So Freunde!: Eventim-Artist-Seite 3763357 (Produktgruppe), Links mit
-//    Affiliate-Code ?affiliate=TUG (wie vom Betreiber vorgegeben).
+//  - So Freunde!: Eventim-Artist-Seite 3763357 + Ticketmaster (München,
+//    Stuttgart, Berlin). Stand 2026-08-09 komplett ausverkauft.
 
 export interface TourDate {
   /** ISO-Datum mit Uhrzeit, z. B. "2026-10-02T20:00:00+02:00" */
@@ -33,7 +33,7 @@ export const tourDates: TourDate[] = [
     city: 'Schleswig',
     venue: 'Krögers Heimat',
     ticketUrl:
-      'https://www.eventim.de/event/roger-g-try-out-tour-kroegers-heimat-21149527/?affiliate=TUG',
+      'https://www.eventim.de/event/roger-g-try-out-tour-kroegers-heimat-21149527/',
   },
   {
     date: '2026-10-02T20:00:00+02:00',
@@ -61,7 +61,7 @@ export const tourDates: TourDate[] = [
     city: 'Flensburg',
     venue: 'Kühlhaus',
     ticketUrl:
-      'https://www.eventim.de/event/roger-g-try-out-tour-kuehlhaus-21344792/?affiliate=TUG',
+      'https://www.eventim.de/event/roger-g-try-out-tour-kuehlhaus-21344792/',
   },
   {
     date: '2026-10-10T20:00:00+02:00',
@@ -73,7 +73,8 @@ export const tourDates: TourDate[] = [
 ];
 
 // ── So Freunde! (aktuelle Tour, zusätzlich auf der Seite gezeigt) ──
-// Kommende Eventim-Termine (Stand 2026-08-08), Links mit Affiliate ?affiliate=TUG.
+// Alle Termine sind ausverkauft (Stand 2026-08-09) → soldOut überall.
+// Warteliste läuft über das Klaviyo-Anmeldeformular (Signup-Sektion).
 export const soFreundeName = 'Roger G – So Freunde!';
 
 export const soFreundeDescription =
@@ -88,6 +89,7 @@ export const soFreundeDates: TourDate[] = [
     venue: 'Technikum',
     ticketUrl:
       'https://www.ticketmaster.de/event/roger-g-so-freunde-tickets/910749789',
+    soldOut: true,
   },
   {
     date: '2026-09-17T20:15:00+02:00',
@@ -95,13 +97,14 @@ export const soFreundeDates: TourDate[] = [
     venue: 'Theaterhaus (Halle T2)',
     ticketUrl:
       'https://www.ticketmaster.de/event/roger-g-so-freunde-tickets/627091708',
+    soldOut: true,
   },
   {
     date: '2026-09-19T19:30:00+02:00',
     city: 'Neuss',
     venue: 'Landesgartenschau-Gelände',
     ticketUrl:
-      'https://www.eventim.de/event/roger-g-so-freunde-landesgartenschau-gelaende-neuss-20443572/?affiliate=TUG',
+      'https://www.eventim.de/event/roger-g-so-freunde-landesgartenschau-gelaende-neuss-20443572/',
     soldOut: true,
   },
   {
@@ -109,28 +112,32 @@ export const soFreundeDates: TourDate[] = [
     city: 'Erfurt',
     venue: 'DASDIE Brettl',
     ticketUrl:
-      'https://www.eventim.de/event/roger-g-so-freunde-dasdie-brettl-21317065/?affiliate=TUG',
+      'https://www.eventim.de/event/roger-g-so-freunde-dasdie-brettl-21317065/',
+    soldOut: true,
   },
   {
     date: '2026-09-28T20:00:00+02:00',
     city: 'Jena',
     venue: 'F-Haus',
     ticketUrl:
-      'https://www.eventim.de/event/roger-g-so-freunde-f-haus-21311075/?affiliate=TUG',
+      'https://www.eventim.de/event/roger-g-so-freunde-f-haus-21311075/',
+    soldOut: true,
   },
   {
     date: '2026-11-01T19:00:00+01:00',
     city: 'Köln',
     venue: 'GLORIA',
     ticketUrl:
-      'https://www.eventim.de/event/roger-g-so-freunde-gloria-21685381/?affiliate=TUG',
+      'https://www.eventim.de/event/roger-g-so-freunde-gloria-21685381/',
+    soldOut: true,
   },
   {
     date: '2026-11-02T20:00:00+01:00',
     city: 'Dortmund',
     venue: 'FZW / Freizeitzentrum West',
     ticketUrl:
-      'https://www.eventim.de/event/roger-g-so-freunde-fzw-freizeitzentrum-west-20705450/?affiliate=TUG',
+      'https://www.eventim.de/event/roger-g-so-freunde-fzw-freizeitzentrum-west-20705450/',
+    soldOut: true,
   },
   {
     date: '2026-11-06T20:00:00+01:00',
@@ -138,5 +145,6 @@ export const soFreundeDates: TourDate[] = [
     venue: 'PUNCH L!NE Club',
     ticketUrl:
       'https://www.ticketmaster.de/event/roger-g-so-freunde-tickets/1977173460',
+    soldOut: true,
   },
 ];
