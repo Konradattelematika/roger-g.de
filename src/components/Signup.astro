@@ -26,6 +26,19 @@
   </div>
 </section>
 
+<!-- Klaviyo injiziert das Formular clientseitig (ohne Astro-Scope) mit fester
+     Breite (410px aus dem Editor) → mobil ragt es raus. Global einspannen. -->
+<style is:global>
+  .klaviyo-form-ULLBYj form.klaviyo-form {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .klaviyo-form-ULLBYj * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+</style>
+
 <style>
   .signup {
     position: relative;
@@ -69,6 +82,9 @@
     padding: clamp(1.1rem, 3vw, 1.8rem);
     backdrop-filter: blur(4px);
     rotate: -0.4deg;
+    /* Grid-Item: ohne min-width:0 bläht das feste 410px-Klaviyo-Formular
+       das Item auf und ragt mobil rechts raus. */
+    min-width: 0;
   }
   /* Leerer Container erzeugt keinen sichtbaren Kasten, bevor Klaviyo lädt */
   .signup-form:empty {
