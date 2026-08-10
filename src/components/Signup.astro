@@ -73,24 +73,11 @@
     max-width: 38rem;
   }
 
-  /* Karten-Rahmen im Sticker-Look – gibt dem Klaviyo-Formular Halt,
-     falls dessen Editor-Styling transparent/randlos ist. */
+  /* Kein eigener Karten-Rahmen – das Klaviyo-Formular bringt seine eigene
+     Optik mit; ohne unseren Kasten wirkt es sauberer.
+     Grid-Item: ohne min-width:0 bläht das feste 410px-Klaviyo-Formular das
+     Item auf und ragt mobil rechts raus. */
   .signup-form {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: clamp(1.1rem, 3vw, 1.8rem);
-    backdrop-filter: blur(4px);
-    rotate: -0.4deg;
-    /* Grid-Item: ohne min-width:0 bläht das feste 410px-Klaviyo-Formular
-       das Item auf und ragt mobil rechts raus. */
     min-width: 0;
-  }
-  /* Leerer Container erzeugt keinen sichtbaren Kasten, bevor Klaviyo lädt */
-  .signup-form:empty {
-    background: none;
-    border: none;
-    padding: 0;
-    backdrop-filter: none;
   }
 </style>
