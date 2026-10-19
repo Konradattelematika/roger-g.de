@@ -7,6 +7,10 @@
 //    Wermelskirchen = bergisch-live, Saarlouis = Kulturamt der Stadt).
 //  - So Freunde!: Eventim-Artist-Seite 3763357 + Ticketmaster (München,
 //    Stuttgart, Berlin). Stand 2026-08-09 komplett ausverkauft.
+//  - Try Out 2027: Rogers Ticketing-Tracking-Tabelle (Upload 2026-10-19,
+//    Datum/Location/Ort/Ausverkauft) + Ticketseiten der Veranstalter.
+//    Die Try-Out-Shows 2026 sind seit 2026-10-19 auf Konrads Wunsch als
+//    ausverkauft markiert (Anzeige „Ausverkauft · Vorbei").
 
 export interface TourDate {
   /** ISO-Datum mit Uhrzeit, z. B. "2026-10-02T20:00:00+02:00" */
@@ -16,7 +20,8 @@ export interface TourDate {
   /** Straße + Hausnummer für Schema.org (optional, verbessert Rich Results) */
   street?: string;
   postalCode?: string;
-  ticketUrl: string;
+  /** Fehlt, solange der VVK-Link noch nicht bekannt ist → Karte zeigt „Tickets bald" */
+  ticketUrl?: string;
   soldOut?: boolean;
 }
 
@@ -34,6 +39,7 @@ export const tourDates: TourDate[] = [
     venue: 'Krögers Heimat',
     ticketUrl:
       'https://www.eventim.de/event/roger-g-try-out-tour-kroegers-heimat-21149527/',
+    soldOut: true,
   },
   {
     date: '2026-10-02T20:00:00+02:00',
@@ -41,6 +47,7 @@ export const tourDates: TourDate[] = [
     venue: 'Zollhaus',
     ticketUrl:
       'https://www.reservix.de/tickets-roger-g-try-out-tour-2026-in-leer-zollhaus-am-2-10-2026/e2533094',
+    soldOut: true,
   },
   {
     date: '2026-10-03T20:00:00+02:00',
@@ -48,6 +55,7 @@ export const tourDates: TourDate[] = [
     venue: 'Kattwinkelsche Fabrik',
     // Venue-VVK (bergisch-live) – nicht über Eventim/Reservix erhältlich.
     ticketUrl: 'https://www.bergisch-live.de/Ort/470',
+    soldOut: true,
   },
   {
     date: '2026-10-04T20:00:00+02:00',
@@ -55,6 +63,7 @@ export const tourDates: TourDate[] = [
     venue: 'Ringlokschuppen Ruhr',
     ticketUrl:
       'https://www.reservix.de/tickets-roger-g-try-out-tour-in-muelheim-an-der-ruhr-ringlokschuppen-ruhr-buehne-1-am-4-10-2026/e2549957',
+    soldOut: true,
   },
   {
     date: '2026-10-08T20:00:00+02:00',
@@ -62,6 +71,7 @@ export const tourDates: TourDate[] = [
     venue: 'Kühlhaus',
     ticketUrl:
       'https://www.eventim.de/event/roger-g-try-out-tour-kuehlhaus-21344792/',
+    soldOut: true,
   },
   {
     date: '2026-10-10T20:00:00+02:00',
@@ -69,6 +79,35 @@ export const tourDates: TourDate[] = [
     venue: 'Theater am Ring',
     // Präsentiert vom Kulturamt der Kreisstadt Saarlouis – VVK über die Stadt.
     ticketUrl: 'https://www.saarlouis.de/rathaus/aktuelles/theater-am-ring/',
+    soldOut: true,
+  },
+  // ── Try Out 2027 ── Beginn 20:00 nur in Hamburg/Indra belegt (rausgegangen.de,
+  // Eventim), sonst wie bei allen Try-Out-Shows angenommen.
+  {
+    date: '2027-01-07T20:00:00+01:00',
+    city: 'Hamburg',
+    // „Freche Möwe Presents" (Stand-up-Reihe im Indra), lt. Tabelle ausverkauft.
+    venue: 'Indra Musikclub',
+    street: 'Große Freiheit 64',
+    postalCode: '22767',
+    // Eventim-Tourseite (Event-ID unbekannt: eventim.de sperrt diesen Server mit 403)
+    ticketUrl: 'https://www.eventim.de/artist/roger-g/roger-g-try-out-tour-4096399/',
+    soldOut: true,
+  },
+  {
+    date: '2027-01-08T20:00:00+01:00',
+    city: 'Berlin',
+    venue: 'Mad Monkey Room',
+    street: 'Danziger Straße 1',
+    postalCode: '10435',
+    // TODO: Ticketlink fehlt (19.10.2026 nirgends öffentlich gelistet) → „Tickets bald"
+  },
+  {
+    date: '2027-03-10T20:00:00+01:00',
+    city: 'Hamburg',
+    venue: 'Reeperbahn Comedy Club',
+    // TODO: Ticketlink fehlt (VVK läuft lt. Tabelle, Link nicht auffindbar) → „Tickets bald".
+    // Adresse offen: Club spielt umbaubedingt zeitweise im St. Pauli Comedy Club.
   },
 ];
 

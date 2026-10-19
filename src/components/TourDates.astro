@@ -1,6 +1,6 @@
 ---
 import type { TourDate } from '../data/tour';
-import { isPast, posterDate } from '../lib/dates';
+import { posterDate, splitByPast } from '../lib/dates';
 
 interface Props {
   /** Anker-ID der Sektion, z. B. "termine" */
@@ -23,12 +23,17 @@ const { id, heading, annotation, watermark, schemaName, schemaDescription, dates
 
 // Datum wie auf dem Plakat: "11 SEP" groß in Bubble, Wochentag + Jahr klein –
 // posterDate() rechnet in Europe/Berlin (src/lib/dates.ts).
-// Rechte Spalte je Karte: Ticket-Button – oder ein Label, wenn die Show
-// ausverkauft oder (Berliner Kalendertag, zur Build-Zeit) schon gespielt ist.
-// Ein Ticketlink für eine gespielte Show wäre falsch; nach jeder Show neu deployen.
-const now = new Date();
-const status = (d: TourDate): 'tickets' | 'ausverkauft' | 'vorbei' =>
-  isPast(d.date, now) ? 'vorbei' : d.soldOut ? 'ausverkauft' : 'tickets';
+// Kommende Shows stehen oben, gespielte darunter unter „Schon gespielt"
+// (Berliner Kalendertag, zur Build-Zeit → nach jeder Show neu deployen).
+// Rechte Spalte je Karte: Ticket-Button nur für kommende, nicht ausverkaufte
+// Shows mit ticketUrl („Tickets bald", solange der Link fehlt) – sonst Label
+// „Ausverkauft" und/oder „Vorbei" (beides möglich).
+// Ein Ticketlink für eine gespielte Show wäre falsch.
+const { upcoming, past } = splitByPast(dates);
+const groups = [
+  { shows: upcoming, isPast: false },
+  { shows: past, isPast: true },
+].filter((g) => g.shows.length > 0);
 
 // Schema.org: eine ComedyEvent-Entity pro Termin → Rich Results in Google
 const jsonLd = {
@@ -54,7 +59,7 @@ const jsonLd = {
     },
     offers: {
       '@type': 'Offer',
-      url: d.ticketUrl,
+      ...(d.ticketUrl ? { url: d.ticketUrl } : {}),
       availability: d.soldOut
         ? 'https://schema.org/SoldOut'
         : 'https://schema.org/InStock',
@@ -73,29 +78,44 @@ const jsonLd = {
     </div>
     {note && <p class="dates-note">{note}</p>}
 
-    <ol class="dates">
-      {
-        dates.map((d) => (
-          <li class="date-row">
-            <time class="date-when" datetime={d.date}>
-              <span class="date-big">{posterDate(d.date).big}</span>
-              <span class="date-meta">{posterDate(d.date).meta}</span>
-            </time>
-            <div class="date-where">
-              <span class="date-city">{d.city}</span>
-              <span class="date-venue">{d.venue}</span>
-            </div>
-            {status(d) === 'tickets' ? (
-              <a class="btn date-btn" href={d.ticketUrl} target="_blank" rel="noopener">
-                Tickets für {d.city}
-              </a>
-            ) : (
-              <span class="date-soldout">{status(d) === 'vorbei' ? 'Vorbei' : 'Ausverkauft'}</span>
-            )}
-          </li>
-        ))
-      }
-    </ol>
+    {
+      groups.map((g) => (
+        <Fragment>
+          {/* Bewusst keine <h3>: die h2 ist bis zum Scrollen per GSAP versteckt
+              (autoAlpha), dann sähe die Gliederung h1 → h3 aus (Lighthouse heading-order) */}
+          {g.isPast && (
+            <p class="dates-past-title" id={`${id}-past`}>
+              Schon gespielt
+            </p>
+          )}
+          <ol class="dates" aria-labelledby={g.isPast ? `${id}-past` : undefined}>
+            {g.shows.map((d) => (
+              <li class:list={['date-row', { 'is-past': g.isPast }]}>
+                <time class="date-when" datetime={d.date}>
+                  <span class="date-big">{posterDate(d.date).big}</span>
+                  <span class="date-meta">{posterDate(d.date).meta}</span>
+                </time>
+                <div class="date-where">
+                  <span class="date-city">{d.city}</span>
+                  <span class="date-venue">{d.venue}</span>
+                </div>
+                {!g.isPast && !d.soldOut && d.ticketUrl ? (
+                  <a class="btn date-btn" href={d.ticketUrl} target="_blank" rel="noopener">
+                    Tickets für {d.city}
+                  </a>
+                ) : (
+                  <p class="date-status">
+                    {d.soldOut && <span class="date-label">Ausverkauft</span>}
+                    {!d.soldOut && !g.isPast && <span class="date-label">Tickets bald</span>}
+                    {g.isPast && <span class="date-past">Vorbei</span>}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ol>
+        </Fragment>
+      ))
+    }
   </div>
 </section>
 
@@ -134,12 +154,26 @@ const jsonLd = {
     font-size: var(--text-xl);
   }
 
+  /* Zähler auf der Sektion, damit die Nummern über beide Listen
+     (kommend + „Schon gespielt") durchlaufen */
+  .dates-section {
+    counter-reset: showNr;
+  }
+
   .dates {
     list-style: none;
-    counter-reset: showNr;
     padding: 0;
     display: grid;
     gap: var(--space-2);
+  }
+
+  .dates-past-title {
+    margin: var(--space-4) 0 var(--space-2);
+    color: var(--ink-dim);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
   }
 
   /* Plakat-Übersetzung: Datum in Pink-Bubble, Stadt/Venue in fettem Weiß.
@@ -175,7 +209,7 @@ const jsonLd = {
 
   /* Laufende Nummer als Watermark in der Kartenecke */
   .date-row::after {
-    content: '0' counter(showNr);
+    content: counter(showNr, decimal-leading-zero);
     position: absolute;
     top: 0.4rem;
     right: 0.9rem;
@@ -225,11 +259,34 @@ const jsonLd = {
     font-weight: 600;
   }
 
-  .date-soldout {
+  /* Gespielte Shows treten zurück; das Label rechts bleibt voll sichtbar */
+  .is-past {
+    background: rgb(255 255 255 / 0.05);
+    border-style: dashed;
+  }
+  .is-past .date-when,
+  .is-past .date-where {
+    opacity: 0.7;
+  }
+
+  .date-status {
+    display: grid;
+    gap: 0.1em;
+    align-self: center;
+  }
+
+  .date-label {
     color: var(--pink);
     font-family: var(--font-display);
     text-transform: uppercase;
-    align-self: center;
+  }
+
+  .date-past {
+    color: var(--ink-dim);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
   }
 
   /* Mobil: Ticket-Button volle Breite → klare Tap-Fläche */
@@ -249,6 +306,10 @@ const jsonLd = {
     .date-btn {
       justify-self: end;
       margin-top: 0;
+    }
+    .date-status {
+      justify-items: end;
+      text-align: right;
     }
     .date-row::after {
       top: auto;

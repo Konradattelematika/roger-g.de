@@ -14,8 +14,9 @@ const items = [
   'Try Out Tour 26',
   'Neues Material',
   'Null Sicherheitsnetz',
-  // Anzahl aus tour.ts wie in About.astro (stand vorher hart als „6" hier)
-  `${tourDates.length} Städte`,
+  // Anzahl aus tour.ts wie in About.astro (stand vorher hart als „6" hier);
+  // Städte, nicht Shows – Hamburg spielt 2027 zweimal
+  `${new Set(tourDates.map((d) => d.city)).size} Städte`,
   'Was floppt, habt nur ihr gesehen',
 ];
 ---

@@ -11,6 +11,7 @@ import {
   nextShowLabel,
   parseIso,
   posterDate,
+  splitByPast,
 } from '../src/lib/dates.ts';
 import type { TourDate } from '../src/data/tour.ts';
 
@@ -86,7 +87,7 @@ test('berlinOffset: +02:00 im Sommer, +01:00 im Winter, Umstellung 25.10.2026 01
   assert.equal(berlinOffset('2026-03-29T00:59:00Z'), '+01:00');
 });
 
-// ---------------------------------------------------------------- isPast / nextShow
+// ---------------------------------------------------------------- isPast / nextShow / splitByPast
 test('isPast: Show gilt am Showtag (Berlin) bis Mitternacht als bevorstehend', () => {
   const erfurt = '2026-09-27T19:00:00+02:00';
   assert.equal(isPast(erfurt, new Date('2026-09-26T12:00:00Z')), false);
@@ -113,4 +114,21 @@ test('nextShow: früheste nicht vergangene Show, unabhängig von der Reihenfolge
     ['Flensburg', 'Schleswig', 'Leer'],
     'Eingabe bleibt unsortiert'
   );
+});
+
+test('splitByPast: bevorstehende zuerst, gespielte darunter – beide Gruppen chronologisch, Showtag zählt als bevorstehend', () => {
+  const dates = [
+    show('2027-03-10T20:00:00+01:00', 'Hamburg'),
+    show('2026-09-11T20:00:00+02:00', 'Schleswig'),
+    show('2027-01-08T20:00:00+01:00', 'Berlin'),
+    show('2026-10-10T20:00:00+02:00', 'Saarlouis'),
+  ];
+  const { upcoming, past } = splitByPast(dates, new Date('2026-10-19T12:00:00Z'));
+  assert.deepEqual(upcoming.map((d) => d.city), ['Berlin', 'Hamburg']);
+  assert.deepEqual(past.map((d) => d.city), ['Schleswig', 'Saarlouis']);
+  const amShowtag = splitByPast(dates, new Date('2027-01-08T22:30:00Z')); // 23:30 Berlin am 08.01.
+  assert.deepEqual(amShowtag.upcoming.map((d) => d.city), ['Berlin', 'Hamburg']);
+  assert.deepEqual(splitByPast(dates, new Date('2027-04-01T12:00:00Z')).upcoming, []);
+  assert.deepEqual(splitByPast([], new Date()), { upcoming: [], past: [] });
+  assert.equal(dates[0].city, 'Hamburg', 'Eingabe bleibt unsortiert');
 });

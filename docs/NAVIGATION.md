@@ -1,6 +1,6 @@
 # Try Out Tour Landingpage (roger-g.de) – Navigationskarte für Agenten
 
-Stand 27.09.2026 (lokal `main` 61bd641 = `origin/main` = live; letzter Deploy 20.08.2026 13:06 Berlin, von Hand im
+Stand 27.09.2026, Termine/Kartenlogik nachgezogen 19.10.2026 (lokal `main` 61bd641 = `origin/main` = live; letzter Deploy 20.08.2026 13:06 Berlin, von Hand im
 Coolify-UI). Diese Karte sagt, **welche Datei wofür zuständig ist**, wie Termine zu Hero/Karten/JSON-LD werden, was
 Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie enthält die Faktenlage zu den Rechtstexten
 (§6). Das Projekt-Briefing mit Design-Richtung und Arbeitsregeln bleibt `../CLAUDE.md` (Hinweis: dessen TODO-Liste und
@@ -9,7 +9,8 @@ Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie en
 ## 0. In 60 Sekunden
 
 - **Was:** One-Pager https://roger-g.de für die „Try Out Tour 26" von Roger G. (Stand-up-Comedy, neues Programm auf
-  kleinen Bühnen): Hero als Plakat, Laufband, Terminliste „Termine" (6 Shows 11.09.–10.10.2026), zweite Terminliste
+  kleinen Bühnen): Hero als Plakat, Laufband, Terminliste „Termine" (9 Shows: 6 gespielte 11.09.–10.10.2026, alle ausverkauft, + 3 neue
+  07.01.–10.03.2027 in Hamburg/Berlin; seit 19.10.2026), zweite Terminliste
   „So Freunde!" (8 Shows der großen Tour, alle ausverkauft), Klaviyo-Anmeldeformular („Warteliste"), Erklärblock
   „Was ist eine Try-Out-Show?", Footer; dazu `/impressum/` und `/datenschutz/`. Kein Shop, kein Login, kein CMS.
 - **Stack:** Astro 7 (rein statisch, `site: https://roger-g.de`, `@astrojs/sitemap`), kein UI-Framework. Ein
@@ -21,7 +22,7 @@ Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie en
   **Nie Termine ins HTML schreiben.** Build braucht kein Netz.
 - **Zeit ist eingefroren:** „Nächste Show" und das Label „Vorbei" werden **zur Build-Zeit** (Berliner Kalendertag)
   berechnet – nach jeder gespielten Show muss neu gebaut/deployt werden, sonst wirbt die Seite für eine vergangene Show
-  (so geschehen 12.09.–27.09.2026, s. §12). Ab 11.10.2026 hat die Try-Out-Liste keine kommende Show mehr.
+  (so geschehen 12.09.–27.09.2026, s. §12). Nächste Try-Out-Shows: 07.01., 08.01., 10.03.2027.
 - **Externe Dienste:** nur Klaviyo (Onsite-Tracking-Skript im `<head>` jeder Seite + eingebettetes Formular ULLBYj).
   Es setzt Cookies und lädt Google Fonts nach – die Datenschutzseite behauptet das Gegenteil (§5/§6). Ticketlinks
   führen zu Eventim, Reservix, Ticketmaster, bergisch-live, saarlouis.de.
@@ -29,7 +30,7 @@ Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie en
   `Konradattelematika/roger-g.de` Branch `main`, Buildpack Dockerfile, Port 80, Domains `roger-g.de` + `www.roger-g.de`,
   Healthcheck aus, keine ENV-Variablen). **Kein automatischer Deploy** – alle 7 Deploys der Historie waren manuell.
   Nach einem Push den API-Trigger rufen (§9). Push/Deploy nur mit Konrads OK.
-- **Testen:** `npm test` (node:test, 15 Tests, ohne Netz, seit 27.09.2026) · `npm run build` (≈1,5 s) · Screenshots
+- **Testen:** `npm test` (node:test, 16 Tests, ohne Netz, seit 27.09.2026) · `npm run build` (≈1,5 s) · Screenshots
   390/1440 px mit `scripts/shot.mjs` / `scripts/scroll-shot.mjs` (Pflicht laut `CLAUDE.md` bei visuellen Änderungen).
 - **Kein Loop, kein Cron:** Nichts läuft automatisch gegen dieses Repo (`grep -rl roger-g.de ~/claude-cloud/loops/`
   trifft nur den Innovations-Scout-Bericht). Uncommittete Änderungen hier sind folgenlos, bis jemand baut und deployt.
@@ -37,12 +38,13 @@ Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie en
 ## 1. Lagekarte
 
 ```
- src/data/tour.ts  { tourName, tourDescription, tourDates[6], soFreundeName, soFreundeDescription, soFreundeDates[8] }
+ src/data/tour.ts  { tourName, tourDescription, tourDates[9], soFreundeName, soFreundeDescription, soFreundeDates[8] }
         │
-        ├─► src/components/Hero.astro       „Nächste Show · 02. Okt · Leer"  (nextShow() aus src/lib/dates.ts)
-        ├─► src/components/Marquee.astro    „6 Städte" (tourDates.length)
-        ├─► src/components/About.astro      „6 Städte. Ein Zettel. Null Garantie." (tourDates.length) + Footer
-        └─► src/components/TourDates.astro  ×2 (index.astro): Karten „11 Sep / Freitag 2026 / Schleswig / Vorbei|Ausverkauft|Tickets"
+        ├─► src/components/Hero.astro       „Nächste Show · 07. Jan · Hamburg"  (nextShow() aus src/lib/dates.ts)
+        ├─► src/components/Marquee.astro    „8 Städte" (verschiedene Städte in tourDates)
+        ├─► src/components/About.astro      „8 Städte. Ein Zettel. Null Garantie." (dito) + Footer
+        └─► src/components/TourDates.astro  ×2 (index.astro): kommende Shows oben, darunter „Schon gespielt" (splitByPast());
+                                            Karten „07 Jan / Donnerstag 2027 / Hamburg / Tickets|Ausverkauft|Ausverkauft+Vorbei"
                                             + <script type="application/ld+json"> je Liste ein @graph aus ComedyEvent
         ▼
  src/pages/index.astro ─ src/layouts/Layout.astro (<head>: Canonical, OG, Sitemap-Link, Klaviyo-Loader; <body>: animations.ts)
@@ -98,7 +100,7 @@ tryout-tour/                      (Klon von github.com/Konradattelematika/roger-
 │   ├── components/About.astro    Erklärblock, pinker CTA-Banner (Städtezahl aus tour.ts), <footer> mit Links /impressum/ und /datenschutz/
 │   ├── scripts/animations.ts     Lenis + GSAP: Hero-Intro (SplitText-Buchstaben, sr-only-Kopie für Screenreader), Dauer-Loops, Hero-Parallax, je .dates-section eine Scroll-Sequenz, [data-reveal]; bei prefers-reduced-motion passiert NICHTS
 │   └── styles/global.css         Tokens (Plakat-Palette --pink #e890c6, --plum, Glow, Fonts, fluider Typo-Scale, --band-h), Reset, Utilities .container .section .display .subline .annotation .scratched .btn .btn-ghost .burst .star .watermark .marquee* .sr-only
-├── tests/                        (27.09.) dates.test.mts (8 Tests src/lib/dates.ts), tour.test.mts (7 Tests Datenprüfung tour.ts) – `npm test`
+├── tests/                        (27.09.) dates.test.mts (9 Tests src/lib/dates.ts), tour.test.mts (7 Tests Datenprüfung tour.ts) – `npm test`
 ├── shots/                        (ignoriert) 39 Verifikations-Screenshots vom 11.07.2026
 ├── lighthouse.json               (ignoriert) Lighthouse-Report 11.07.2026 (Perf 0.99 / A11y 1 / BP 1 / SEO 1 – VOR Klaviyo gemessen)
 ├── .playwright-mcp/              (ignoriert seit 27.09.) Konsolen-Logs/Seiten-Snapshots aus MCP-Sitzungen 09./10.08.2026
@@ -110,10 +112,10 @@ tryout-tour/                      (Klon von github.com/Konradattelematika/roger-
 **`src/data/tour.ts`** – so ist es gemeint (und seit 27.09. getestet, `tests/tour.test.mts`):
 - `date` ist **Berliner Ortszeit mit explizitem Offset**, z. B. `2026-10-02T20:00:00+02:00`; im Winter `+01:00`
   (Umstellung 25.10.2026 – Köln/Dortmund/Berlin im November stehen korrekt mit `+01:00`). Ein falscher Offset fällt im Test auf.
-- Beide Listen **chronologisch aufsteigend** – die Karten zeigen die Dateireihenfolge (Nummern-Wasserzeichen 01, 02, …).
-- `ticketUrl` immer https, **ohne `affiliate=`-Parameter** (Commit 5148c83 hat `?affiliate=TUG` entfernt, der Code gehört
+- Beide Listen **chronologisch aufsteigend** (Test); angezeigt wird kommend vor gespielt (`splitByPast`), Nummern-Wasserzeichen 01, 02, … in Anzeigereihenfolge.
+- `ticketUrl` optional (fehlt → „Tickets bald" statt Button, im JSON-LD kein `offers.url`), wenn gesetzt immer https, **ohne `affiliate=`-Parameter** (Commit 5148c83 hat `?affiliate=TUG` entfernt, der Code gehört
   nicht dem Betreiber). `soldOut: true` ersetzt den Ticket-Button durch „Ausverkauft". `street`/`postalCode` sind
-  optional (heute nirgends gesetzt) und landen nur im JSON-LD.
+  optional (gesetzt nur bei Indra Hamburg und Mad Monkey Room Berlin) und landen nur im JSON-LD.
 - Quellen der Daten (Kommentar im Dateikopf): Eventim-Artist-Seiten, Reservix, Ticketmaster, Venue-VVK; recherchiert
   08./09.08.2026. Uhrzeiten der Try-Out-Shows sind laut `CLAUDE.md` nur die Annahme 20:00.
 
@@ -129,19 +131,26 @@ ging nur gut, weil alle Shows abends liegen; Coolify baut in UTC):
 **Was daraus wird (alles zur Build-Zeit):**
 - `Hero.astro`: „Nächste Show · 02. Okt · Leer" aus `nextShow(tourDates)`; ohne kommende Show **entfällt die Zeile**
   (`animations.ts` prüft `[data-hero="next"]`, sonst GSAP-Warnung „target not found").
-- `TourDates.astro`: rechte Spalte je Karte = `Vorbei` (gespielt) › `Ausverkauft` (`soldOut`) › Button „Tickets für
-  {city}" (`target=_blank rel=noopener`). Das JSON-LD ist davon unberührt: jede Show bleibt `ComedyEvent` mit
+- `TourDates.astro` (seit 19.10.2026): `splitByPast()` teilt in **kommende Shows (oben)** und **„Schon gespielt"**
+  (eigene `<ol class="dates">`, per `aria-labelledby` beschriftet – bewusst keine `<h3>`, s. Kommentar in der Datei, Karten `.is-past` gedimmt/gestrichelt), je chronologisch;
+  die Dateireihenfolge in `tour.ts` bleibt chronologisch. Rechte Spalte: Button „Tickets für {city}"
+  (`target=_blank rel=noopener`) nur für kommende, nicht ausverkaufte Shows; sonst `.date-status` mit „Ausverkauft"
+  (`soldOut`) und/oder „Vorbei" (gespielt) – gespielte + ausverkaufte Shows zeigen beides. Nummern-Wasserzeichen
+  laufen über beide Listen durch (Zähler auf `.dates-section`). Das JSON-LD ist davon unberührt: jede Show bleibt `ComedyEvent` mit
   `eventStatus EventScheduled`, `offers.availability` `InStock`/`SoldOut`, `performer` „Roger G.", `location` mit
   `addressLocality`/`addressCountry DE`, ohne Preis.
-- `Marquee.astro` und `About.astro`: Städtezahl = `tourDates.length` (heute 6, zählt gespielte Shows mit).
+- `Marquee.astro` und `About.astro`: Städtezahl = Anzahl **verschiedener** Städte in `tourDates` (heute 8: Hamburg
+  spielt 2027 zweimal; gespielte Shows zählen mit).
 - Zweite Liste `#so-freunde` (Annotation „Komplett ausverkauft", Hinweis auf die Warteliste): alle 8 Einträge
   `soldOut`, vier davon inzwischen gespielt → „Vorbei", vier „Ausverkauft" (Erfurt 27.09., Jena 28.09., Köln 01.11.,
   Dortmund 02.11., Berlin 06.11.).
 
 **Folge für den Betrieb:** Weil die Seite statisch ist, stimmt „Nächste Show"/„Vorbei" nur zum Build-Zeitpunkt. Nach
 jeder Show (Try Out: 02.10., 03.10., 04.10., 08.10., 10.10.) neu deployen (§9) – oder die Auswertung clientseitig
-machen (Vorschlag §12). Nach dem 10.10.2026 zeigt die Try-Out-Liste nur noch „Vorbei" und der Hero keine nächste Show:
-Was die Seite dann zeigen soll, ist eine Inhaltsentscheidung (neue Termine in `tour.ts`, Hinweis, Weiterleitung …).
+machen (Vorschlag §12). Die alten Try-Out-Shows 2026 sind seit 19.10.2026 auf Konrads Wunsch `soldOut: true` (Anzeige „Ausverkauft · Vorbei")
+und bleiben als Referenz auf der Seite; die 2027er Termine stammen aus Rogers Ticketing-Tracking-Tabelle (Upload
+19.10.2026, „Tryout_Tour_2027_Ticketing_Tracking"). Ohne kommende Show entfällt die Hero-Zeile, die Liste zeigt dann
+nur „Schon gespielt".
 
 ## 4. Seiten, Layout, Komponenten, Animationen
 
@@ -160,7 +169,7 @@ Was die Seite dann zeigen soll, ist eine Inhaltsentscheidung (neue Termine in `t
   `min-height: calc(100svh - var(--band-h))`, damit das Laufband im ersten Viewport sichtbar bleibt.
 - **Marquee**: `--marquee-rotate` per Prop, Items × 2, CSS-Animation `translateX(-50%)` (in `global.css`).
 - **TourDates**: Karten `rotate ±0.35deg` (Sticker-Look), Hover-Lift, `::after` Nummer; ab 640 px
-  `grid-template-columns: minmax(10rem, max-content) 1fr auto`. `.date-soldout` dient auch für „Vorbei".
+  `grid-template-columns: minmax(10rem, max-content) 1fr auto`. Labels: `.date-status` > `.date-label` („Ausverkauft"/„Tickets bald", Titan One, pink) / `.date-past` („Vorbei", klein, gedimmt).
 - **Signup**: nur Container + Überschrift; Formularinhalt, Felder (First Name, „Stadt" = organization, Email) und
   Styling kommen aus dem **Klaviyo-Editor** (Form-ID ULLBYj). Globale `!important`-Regeln zwingen das feste 410-px-
   Formular auf 100 % Breite (Overflow-Fix vom 10.08.).
@@ -225,12 +234,12 @@ Anschrift, welche Rechtsform, Steuernummer raus?) liegt bei Konrad; Änderungsor
 
 | Was | Befehl | Erwartung (27.09.2026) |
 |---|---|---|
-| Unit-/Datentests | `npm test` | 15 pass (dates 8, tour 7), < 1 s, kein Netz; Node ≥ 22.12 (Type-Stripping) |
+| Unit-/Datentests | `npm test` | 16 pass (dates 9, tour 7), < 1 s, kein Netz; Node ≥ 22.12 (Type-Stripping) |
 | Build | `npm run build` | 3 Seiten in ≈1,5 s, `dist/sitemap-index.xml` erzeugt; ungültiges Datum in `tour.ts` bricht den Build ab |
-| Build-Inhalt prüfen | `grep -o 'Nächste Show[^/]*' dist/index.html`; JSON-LD: `python3 -c "…json.loads…"` auf die zwei `application/ld+json`-Blöcke | Hero nennt die nächste kommende Show; 6 + 8 `ComedyEvent` |
+| Build-Inhalt prüfen | `grep -o 'Nächste Show[^/]*' dist/index.html`; JSON-LD: `python3 -c "…json.loads…"` auf die zwei `application/ld+json`-Blöcke | Hero nennt die nächste kommende Show; 9 + 8 `ComedyEvent` |
 | Screenshots (Pflicht bei visuellen Änderungen) | `source scripts/env.sh; (cd dist && python3 -m http.server 4399 &)`; `node scripts/shot.mjs http://127.0.0.1:4399/ 390 out.png`; dito `1440`; Sektionen: `node scripts/scroll-shot.mjs <url> 390 '#termine' out.png` | 390 UND 1440 px ansehen; für Sektionen scroll-shot (ScrollTrigger) oder `--reduced` |
 | Dev-Server | `npm run dev -- --host 127.0.0.1 --port 4321` | http://127.0.0.1:4321, Dev-Toolbar aus |
-| Lighthouse | `npx lighthouse http://127.0.0.1:4321 --chrome-flags="--headless --no-sandbox" --output=json --output-path=lighthouse.json --quiet` (mit `source scripts/env.sh`) | Ziel laut CLAUDE.md Perf ≥ 95, SEO 100, A11y ≥ 95; letzter Report 11.07. (vor Klaviyo) 99/100/100/100 |
+| Lighthouse | `npx lighthouse http://127.0.0.1:4321 --chrome-flags="--headless --no-sandbox" --output=json --output-path=lighthouse.json --quiet` (mit `source scripts/env.sh`) | Ziel laut CLAUDE.md Perf ≥ 95, SEO 100, A11y ≥ 95; 19.10.2026 (mit Klaviyo, `astro preview`): Perf 97 / A11y 96 / BP 100 / SEO 100 – einziger A11y-Fund: Kontrast des Klaviyo-Formular-Buttons (#ff69b4 auf Weiß, nur im Klaviyo-Editor änderbar) |
 | Live-Smoke | `curl -sI https://roger-g.de/`, `…/impressum/`, `…/datenschutz/`, `…/sitemap-index.xml`, `…/og.jpg` | alle 200; `last-modified` = Zeitpunkt des Deploys; `/impressum` (ohne Slash) → 301 auf `http://…/impressum/` (nginx-Default) |
 | Drittanbieter/Cookies live | Skript wie in §5 (Playwright, `context.cookies()`, `page.on('request')`) | siehe Tabelle §5 |
 
@@ -307,13 +316,13 @@ Typecheck-Script (`npx astro check` wäre möglich, ungetestet); kein Linter.
 6. **Kartenmeta „2026 Freitag"** (Jahr vor Wochentag) war ein `Intl`-Artefakt; seit 27.09. „Freitag 2026" (Screenshots 390/1440 geprüft).
 7. **Städtezahl** stand im Laufband hart als „6" (About rechnete aus `tour.ts`) → jetzt beide aus `tourDates.length`; die Zahl zählt gespielte Shows mit.
 8. **JSON-LD** listet gespielte Shows weiter als `EventScheduled`/`InStock` und ohne `price` – Google akzeptiert das, zeigt aber Warnungen zu optionalen Feldern; bewusst unverändert.
-9. **Lighthouse-Werte veraltet**: Report vom 11.07. entstand vor Klaviyo (Fremd-JS, 5 Google-Fonts-Requests) – neu messen, wenn Performance ein Thema wird.
+9. **Lighthouse** (19.10.2026, lokal, mit Klaviyo): 97/96/100/100. A11y-Rest: Klaviyo-Button-Kontrast 2,64:1 (Klaviyo-Editor). Achtung: per GSAP versteckte Sektionstitel (autoAlpha bis zum Scrollen) zählen für axe als nicht vorhanden – darum keine `<h3>` unter den Termin-`<h2>`.
 10. **Screenshot-Skripte hängen an Chromium-Revision 1228** (`shot.mjs`, `scroll-shot.mjs`, `env.sh`); im Cache liegt auch 1234. Wenn 1228 verschwindet, sterben sie mit ENOENT – Muster für die Suche nach der neuesten Revision: `ROGER/g-laber-website/scripts/lib/browser.mjs`.
 11. **Dockerfile installiert devDependencies** (lighthouse, playwright-core, sharp) in den Build-Container; `npm ci --omit=dev` wäre schneller – vorher testen, ob Astro ohne sharp baut (die Seite nutzt nur `public/`-Bilder).
 12. **`redirect: both`**: www und Apex liefern beide Inhalt; Canonical rettet SEO, ein Redirect wäre sauberer (Coolify-UI).
 13. **Healthcheck aus** → `running:unknown`; `/` liefert 200.
 14. **Doku überholt**: `CLAUDE.md` TODOs (Ticketlinks „offen" – seit 09.08. drin; Domain „TBD" – gesetzt; Rechtstexte „Platzhalter" – gefüllt, aber s. 2/3), Deployment-Absatz; `HANDOVER.md` (Anton/Rubik, Setup-Schritte) historisch; `DEPLOY.md` Go-Live-Checkliste erledigt. Hinweisblöcke seit 27.09. im Kopf.
-15. **Nach dem 10.10.2026** hat die Try-Out-Liste keine kommende Show: Hero ohne „Nächste Show", alle Karten „Vorbei". Inhaltliche Entscheidung nötig (neue Termine, Hinweis, Newsletter-Fokus).
+15. **Tourname vs. 2027**: Seit 19.10.2026 stehen Termine 2027 auf der Seite, Branding bleibt aber „Try Out Tour 26" (Hero-Subline, Laufband, Footer, `tourName`, Seitentitel „Try Out Tour 2026", Wasserzeichen „26", Plakat/OG-Bild). Umbenennen ist Konrads/Rogers Entscheidung (Wegweiser „Neue Tour" §11).
 16. **`.playwright-mcp/`** (MCP-Sitzungsartefakte 09./10.08.) lag untracked im Baum – seit 27.09. in `.gitignore`; `.astro/dev.json` nennt einen toten Dev-Server-PID.
 
 ## 13. Doku-Landkarte

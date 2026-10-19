@@ -25,7 +25,7 @@ test('Form: beide Terminlisten sind nicht leer, Pflichtfelder sind nicht-leere S
   for (const [name, dates] of lists) {
     assert.ok(dates.length > 0, `${name}: Liste ist leer`);
     for (const d of dates) {
-      for (const field of ['date', 'city', 'venue', 'ticketUrl'] as const) {
+      for (const field of ['date', 'city', 'venue'] as const) {
         const value = d[field];
         assert.equal(typeof value, 'string', `${name} ${d.city}: ${field} ist kein String`);
         assert.ok(value.trim().length > 0, `${name} ${d.city}: ${field} ist leer`);
@@ -34,7 +34,7 @@ test('Form: beide Terminlisten sind nicht leer, Pflichtfelder sind nicht-leere S
         d.soldOut === undefined || typeof d.soldOut === 'boolean',
         `${name} ${d.city}: soldOut ist weder undefined noch boolean`
       );
-      for (const field of ['street', 'postalCode'] as const) {
+      for (const field of ['street', 'postalCode', 'ticketUrl'] as const) {
         const value = d[field];
         if (value === undefined) continue;
         assert.equal(typeof value, 'string', `${name} ${d.city}: ${field} ist kein String`);
@@ -105,9 +105,10 @@ test('Keine Dubletten: date-Strings sind innerhalb jeder Liste eindeutig', () =>
 });
 
 // ---------------------------------------------------------------- Ticketlinks
-test('Ticketlinks: gültige https-URL ohne affiliate-Parameter', () => {
+test('Ticketlinks: gültige https-URL ohne affiliate-Parameter (wo vorhanden)', () => {
   for (const [name, dates] of lists) {
     for (const d of dates) {
+      if (d.ticketUrl === undefined) continue; // VVK-Link noch unbekannt → „Tickets bald"
       let url: URL | undefined;
       assert.doesNotThrow(() => {
         url = new URL(d.ticketUrl);

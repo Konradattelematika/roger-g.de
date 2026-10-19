@@ -74,9 +74,26 @@ export function isPast(iso: string, now: Date = new Date(), timeZone = BERLIN): 
   return berlinDay(iso, timeZone) < berlinDay(now, timeZone);
 }
 
+const byDate = (a: TourDate, b: TourDate) => parseIso(a.date).getTime() - parseIso(b.date).getTime();
+
 /** Früheste noch nicht vergangene Show – unabhängig von der Reihenfolge in tour.ts. */
 export function nextShow(dates: TourDate[], now: Date = new Date(), timeZone = BERLIN): TourDate | undefined {
-  return dates
-    .filter((d) => !isPast(d.date, now, timeZone))
-    .sort((a, b) => parseIso(a.date).getTime() - parseIso(b.date).getTime())[0];
+  return dates.filter((d) => !isPast(d.date, now, timeZone)).sort(byDate)[0];
+}
+
+/**
+ * Terminliste in zwei Gruppen, je chronologisch: `upcoming` (Ticket-Button oder
+ * „Ausverkauft") kommt auf der Seite zuerst, `past` („Schon gespielt") darunter –
+ * sonst müsste man mobil erst an allen gespielten Shows vorbeiscrollen.
+ */
+export function splitByPast(
+  dates: TourDate[],
+  now: Date = new Date(),
+  timeZone = BERLIN
+): { upcoming: TourDate[]; past: TourDate[] } {
+  const sorted = [...dates].sort(byDate);
+  return {
+    upcoming: sorted.filter((d) => !isPast(d.date, now, timeZone)),
+    past: sorted.filter((d) => isPast(d.date, now, timeZone)),
+  };
 }
