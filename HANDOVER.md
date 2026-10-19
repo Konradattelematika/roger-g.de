@@ -1,5 +1,9 @@
 # HANDOVER – Roger G. Try Out Tour Landingpage (Cloud-Ausführung)
 
+> **Historisch (11.07.2026):** Übergabe an die erste Cloud-Sitzung. Setup, Design-Angleichung, OG-Image,
+> Rechtsseiten, Lighthouse und Build sind seitdem erledigt; die Fonts sind inzwischen Titan One + Poppins
+> (nicht Anton/Rubik). Aktueller Einstieg für Agenten: `docs/NAVIGATION.md` (27.09.2026).
+
 Dieses Dokument ist die Übergabe an eine Claude-Code-Instanz, die headless auf einem
 Server läuft (Hetzner CPX31, Ubuntu, Coolify vorhanden). Alles läuft hier in der Cloud:
 MCP-Server, Skills, Libraries, Dev-Server, Screenshots.

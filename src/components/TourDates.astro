@@ -1,5 +1,6 @@
 ---
 import type { TourDate } from '../data/tour';
+import { isPast, posterDate } from '../lib/dates';
 
 interface Props {
   /** Anker-ID der Sektion, z. B. "termine" */
@@ -20,20 +21,14 @@ interface Props {
 const { id, heading, annotation, watermark, schemaName, schemaDescription, dates, note } =
   Astro.props;
 
-// Datum wie auf dem Plakat: "11 SEP" groß in Bubble, Wochentag + Jahr klein
-const dayFmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit' });
-const monthFmt = new Intl.DateTimeFormat('de-DE', { month: 'short' });
-const metaFmt = new Intl.DateTimeFormat('de-DE', {
-  weekday: 'long',
-  year: 'numeric',
-});
-const posterDate = (iso: string) => {
-  const d = new Date(iso);
-  return {
-    big: `${dayFmt.format(d)} ${monthFmt.format(d).replace('.', '')}`,
-    meta: metaFmt.format(d),
-  };
-};
+// Datum wie auf dem Plakat: "11 SEP" groß in Bubble, Wochentag + Jahr klein –
+// posterDate() rechnet in Europe/Berlin (src/lib/dates.ts).
+// Rechte Spalte je Karte: Ticket-Button – oder ein Label, wenn die Show
+// ausverkauft oder (Berliner Kalendertag, zur Build-Zeit) schon gespielt ist.
+// Ein Ticketlink für eine gespielte Show wäre falsch; nach jeder Show neu deployen.
+const now = new Date();
+const status = (d: TourDate): 'tickets' | 'ausverkauft' | 'vorbei' =>
+  isPast(d.date, now) ? 'vorbei' : d.soldOut ? 'ausverkauft' : 'tickets';
 
 // Schema.org: eine ComedyEvent-Entity pro Termin → Rich Results in Google
 const jsonLd = {
@@ -90,12 +85,12 @@ const jsonLd = {
               <span class="date-city">{d.city}</span>
               <span class="date-venue">{d.venue}</span>
             </div>
-            {d.soldOut ? (
-              <span class="date-soldout">Ausverkauft</span>
-            ) : (
+            {status(d) === 'tickets' ? (
               <a class="btn date-btn" href={d.ticketUrl} target="_blank" rel="noopener">
                 Tickets für {d.city}
               </a>
+            ) : (
+              <span class="date-soldout">{status(d) === 'vorbei' ? 'Vorbei' : 'Ausverkauft'}</span>
             )}
           </li>
         ))

@@ -4,7 +4,12 @@
 
 Info- und Landingpage für die Try Out Tour von Roger G. (deutscher Comedy-Creator).
 Ziel: Tourdaten kommunizieren, Tickets verkaufen, WOW-Effekt beim ersten Eindruck.
-Kein Shop – reine Landingpage. Deployment-Ziel: roger-g.de (Subpage oder eigene Domain, TBD).
+Kein Shop – reine Landingpage. Live seit 08.08.2026 unter https://roger-g.de (Coolify, Dockerfile → nginx).
+
+> **Navigationskarte für Agenten** (Rolle jeder Datei, Termin-Datenfluss `tour.ts` → Hero/Karten/JSON-LD,
+> Klaviyo-Beleg, Faktenlage Rechtstexte, Testen, Deploy, Wegweiser, Befunde): `docs/NAVIGATION.md` (27.09.2026).
+> Achtung: „Nächste Show" und „Vorbei" werden zur Build-Zeit berechnet – nach jeder gespielten Show neu deployen.
+> Tests: `npm test`. Kein Auto-Deploy: nach dem Push den Coolify-API-Trigger rufen (`docs/NAVIGATION.md` §9).
 
 ## Stack
 
@@ -69,16 +74,21 @@ SplitText-Buchstaben-Intro, Parallax & orchestrierte Scroll-Sequenzen in
 
 ## Offene TODOs (Platzhalter im Code mit `TODO:` markiert)
 
-- [ ] Ticketlinks + Uhrzeiten in `src/data/tour.ts` (Termine/Venues sind bereits
-      vom Plakat übernommen, Uhrzeit 20:00 ist nur Annahme)
+- [x] Ticketlinks in `src/data/tour.ts` (09.08.2026, Commit 0f80373; die Uhrzeit
+      20:00 der Try-Out-Shows ist weiterhin nur Annahme)
 - [x] Design-Angleichung an Plakate durchführen (design-reference/README.md)
 - [x] Plakatmotiv als Hero-Bild aufbereiten (WebP/AVIF 480/768/1080 → `public/img/`)
 - [x] OG-Image erstellt (1200×630) → `public/og.jpg`
-- [ ] Finale Domain klären und in `astro.config.mjs` (`site`) setzen
-- [x] Impressum/Datenschutz verlinkt (Footer) – Seiten existieren als
-      Platzhalter-Routen, echte Inhalte (§ 5 DDG, DSGVO) fehlen noch
+- [x] Finale Domain roger-g.de, `site` in `astro.config.mjs` gesetzt (11.07.2026), live seit 08.08.2026
+- [x] Impressum/Datenschutz verlinkt und mit Angaben gefüllt (Commit d07aac0) – ABER: die
+      Datenschutzerklärung stimmt seit dem Klaviyo-Einbau (08.08.2026) nicht mehr (Cookie,
+      Tracking, Google Fonts über das Formular) und das Impressum ist in sich widersprüchlich
+      → `docs/NAVIGATION.md` §5/§6, Entscheidung Konrad/Roger
 
 ## Deployment
 
-Statischer Build (`npm run build` → `dist/`). Passt zu Coolify auf dem Hetzner-VPS
-(Static-Site-Preset oder Nginx-Container) oder jedem anderen Static Host.
+Statischer Build (`npm run build` → `dist/`). Läuft als Coolify-App `roger-g.de`
+(Dockerfile: node:22-alpine baut, nginx:alpine liefert aus; Domains roger-g.de + www).
+Ein Push auf `main` deployt NICHT automatisch – Trigger und Ablauf in `docs/NAVIGATION.md` §9,
+Einrichtung in `DEPLOY.md`. Weil „Nächste Show"/„Vorbei" beim Build entschieden werden,
+nach jeder gespielten Show neu deployen.

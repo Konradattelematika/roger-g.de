@@ -70,8 +70,13 @@ if (!prefersReducedMotion) {
       '[data-hero="cta"] > a',
       { y: 18, autoAlpha: 0, duration: 0.4, stagger: 0.08 },
       '-=0.25'
-    )
-    .from('[data-hero="next"]', { autoAlpha: 0, duration: 0.4 }, '-=0.15')
+    );
+  // „Nächste Show" fehlt, wenn keine Show mehr bevorsteht (Hero.astro) –
+  // ohne diese Prüfung meldet GSAP „target not found" in der Konsole.
+  if (document.querySelector('[data-hero="next"]')) {
+    intro.from('[data-hero="next"]', { autoAlpha: 0, duration: 0.4 }, '-=0.15');
+  }
+  intro
     // Sticker knallt wie ein Stempel drauf
     .from(
       '[data-hero="sticker"]',

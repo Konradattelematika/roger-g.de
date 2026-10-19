@@ -2,6 +2,8 @@
 // Endlos-Ticker im Sticker-Tape-Look. Rein dekorativ (aria-hidden) –
 // der Inhalt steht sinngemäß bereits im Hero/Copy.
 // Für den nahtlosen Loop wird die Item-Liste zweimal gerendert (translateX -50%).
+import { tourDates } from '../data/tour';
+
 interface Props {
   /** Rotation des Bands, z. B. "-1.2deg" (Default) oder "1deg" */
   rotate?: string;
@@ -12,7 +14,8 @@ const items = [
   'Try Out Tour 26',
   'Neues Material',
   'Null Sicherheitsnetz',
-  '6 Städte',
+  // Anzahl aus tour.ts wie in About.astro (stand vorher hart als „6" hier)
+  `${tourDates.length} Städte`,
   'Was floppt, habt nur ihr gesehen',
 ];
 ---

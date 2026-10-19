@@ -9,14 +9,14 @@
 // Der Burst-Sticker existiert zweimal (Flow-Element mobil / Poster-Ecke
 // Desktop), sichtbar ist immer nur einer.
 import { tourDates } from '../data/tour';
+import { nextShow, nextShowLabel } from '../lib/dates';
 
-const monthFmt = new Intl.DateTimeFormat('de-DE', { month: 'short' });
-const dayFmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit' });
-const first = tourDates[0];
-const firstDate = new Date(first.date);
-const nextShow = `${dayFmt.format(firstDate)}. ${monthFmt
-  .format(firstDate)
-  .replace('.', '')} · ${first.city}`;
+// „Nächste Show" = früheste noch nicht vergangene Show (Berliner Kalendertag,
+// zur Build-Zeit ausgewertet → nach jeder Show neu deployen). Vorher stand hier
+// stur tourDates[0], sodass ab dem 12.09.2026 eine gespielte Show als „nächste"
+// live stand. Ohne bevorstehende Show entfällt die Zeile (animations.ts prüft das).
+const next = nextShow(tourDates);
+const nextLabel = next ? nextShowLabel(next) : null;
 ---
 
 <header class="hero">
@@ -112,9 +112,11 @@ const nextShow = `${dayFmt.format(firstDate)}. ${monthFmt
         </div>
         <a class="btn-ghost hero-ghost" href="#about">Was ist ’ne Try-Out-Show?</a>
       </div>
-      <p class="hero-next" data-hero="next">
-        Nächste Show&ensp;·&ensp;<strong>{nextShow}</strong>
-      </p>
+      {nextLabel && (
+        <p class="hero-next" data-hero="next">
+          Nächste Show&ensp;·&ensp;<strong>{nextLabel}</strong>
+        </p>
+      )}
     </div>
   </div>
 

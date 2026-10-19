@@ -1,5 +1,11 @@
 # Deploy — roger-g.de via Coolify
 
+> **Stand 27.09.2026:** App eingerichtet (uuid `zk9l0fgnk0e9f5yqpyzqaa59`, Dockerfile, Domains roger-g.de + www,
+> live seit 08.08.2026). Schritt 4 trifft nicht zu: alle 7 Deploys bisher manuell, ein Push auf `main` löst nichts
+> aus → nach dem Push `POST https://coolify.jawollja.gmbh/api/v1/deploy?uuid=zk9l0fgnk0e9f5yqpyzqaa59`
+> (Token in `~/claude-cloud/secrets/coolify-token`). Ablauf, Domains/TLS, nginx-Befunde: `docs/NAVIGATION.md` §9.
+> Die Go-Live-Checkliste unten ist abgearbeitet; was an den Rechtstexten offen ist, steht in `docs/NAVIGATION.md` §6.
+
 Statischer Astro-Build (`npm run build` → `dist/`). DNS: A-Record roger-g.de → 167.233.49.190 (gesetzt 2026-07-11).
 
 ## Coolify-Einrichtung (einmalig, im Coolify-UI)
@@ -14,7 +20,7 @@ Statischer Astro-Build (`npm run build` → `dist/`). DNS: A-Record roger-g.de �
 
 ## Vor dem ersten öffentlichen Go-Live
 
-- [ ] Echte Ticketlinks + Uhrzeiten in `src/data/tour.ts`
-- [ ] Impressum (`src/pages/impressum.astro`) mit echten Angaben füllen (§ 5 DDG)
-- [ ] Datenschutz (`src/pages/datenschutz.astro`): Hosting-Abschnitt konkretisieren
+- [x] Echte Ticketlinks in `src/data/tour.ts` (09.08.2026; Uhrzeiten 20:00 weiter Annahme)
+- [x] Impressum (`src/pages/impressum.astro`) gefüllt (11.07.2026) – Rechtsform/Steuernummer/Anschrift offen, s. `docs/NAVIGATION.md` §6
+- [x] Datenschutz (`src/pages/datenschutz.astro`): Hosting-Abschnitt konkretisiert – aber Klaviyo-Tracking/Cookie/Google Fonts fehlen, s. `docs/NAVIGATION.md` §5
 - [ ] Branding-Freigabe durch Roger (Palette/Fonts sind vom Plakat abgeleitet)

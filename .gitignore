@@ -7,6 +7,8 @@ dist/
 # Verifikations-Screenshots + Lighthouse-Report
 shots/
 lighthouse.json
+# Sitzungsartefakte des Playwright-MCP (Konsolen-Logs, Seiten-Snapshots)
+.playwright-mcp/
 # Plakat-Originale (~75 MB, liegen auf coolify-prod unter design-reference/);
 # die README mit Analyse & Arbeitsauftrag bleibt versioniert
 design-reference/*.png
