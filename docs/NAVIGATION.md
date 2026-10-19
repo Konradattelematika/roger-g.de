@@ -1,7 +1,7 @@
 # Try Out Tour Landingpage (roger-g.de) – Navigationskarte für Agenten
 
-Stand 27.09.2026, Termine/Kartenlogik nachgezogen 19.10.2026 (lokal `main` 61bd641 = `origin/main` = live; letzter Deploy 20.08.2026 13:06 Berlin, von Hand im
-Coolify-UI). Diese Karte sagt, **welche Datei wofür zuständig ist**, wie Termine zu Hero/Karten/JSON-LD werden, was
+Stand 27.09.2026, Termine/Kartenlogik nachgezogen 19.10.2026 (live = `fb6be5b`, deployt 19.10.2026 21:47 Berlin per
+API-Trigger; spätere reine Doku-Commits auf `main` brauchen keinen Deploy). Diese Karte sagt, **welche Datei wofür zuständig ist**, wie Termine zu Hero/Karten/JSON-LD werden, was
 Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie enthält die Faktenlage zu den Rechtstexten
 (§6). Das Projekt-Briefing mit Design-Richtung und Arbeitsregeln bleibt `../CLAUDE.md` (Hinweis: dessen TODO-Liste und
 `../DEPLOY.md`/`../HANDOVER.md` sind teils überholt, siehe §13).
@@ -28,7 +28,7 @@ Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie en
   führen zu Eventim, Reservix, Ticketmaster, bergisch-live, saarlouis.de.
 - **Live:** Coolify-App `roger-g.de` (uuid `zk9l0fgnk0e9f5yqpyzqaa59`, Projekt „Roger G", Quelle GitHub-App
   `Konradattelematika/roger-g.de` Branch `main`, Buildpack Dockerfile, Port 80, Domains `roger-g.de` + `www.roger-g.de`,
-  Healthcheck aus, keine ENV-Variablen). **Kein automatischer Deploy** – alle 7 Deploys der Historie waren manuell.
+  Healthcheck aus, keine ENV-Variablen). **Kein automatischer Deploy** – alle 9 Deploys der Historie waren manuell (der Push vom 19.10. löste ebenfalls nichts aus).
   Nach einem Push den API-Trigger rufen (§9). Push/Deploy nur mit Konrads OK.
 - **Testen:** `npm test` (node:test, 16 Tests, ohne Netz, seit 27.09.2026) · `npm run build` (≈1,5 s) · Screenshots
   390/1440 px mit `scripts/shot.mjs` / `scripts/scroll-shot.mjs` (Pflicht laut `CLAUDE.md` bei visuellen Änderungen).
@@ -250,8 +250,9 @@ Typecheck-Script (`npx astro check` wäre möglich, ungetestet); kein Linter.
 
 1. Änderung lokal, `npm test`, `npm run build`, Screenshots 390/1440.
 2. `git commit` + `git push origin main` – **nur mit Konrads OK**.
-3. **Deploy von Hand auslösen** (die GitHub-App-Quelle ist eingetragen, aber alle 7 Deploys in der Coolify-Historie
-   waren manuell – 08.08. 12:40, 09.08. 11:46, 10.08. 08:54/10:03/11:22/11:58, 20.08. 13:06 Berlin; die Pushes vom
+3. **Deploy von Hand auslösen** (die GitHub-App-Quelle ist eingetragen, aber alle 9 Deploys in der Coolify-Historie
+   waren manuell – 08.08. 12:40, 09.08. 11:46, 10.08. 08:54/10:03/11:22/11:58, 20.08. 13:06, 06.10. 13:24 (Rebuild 61bd641),
+   19.10. 21:47 (API, fb6be5b) Berlin; die Pushes vom
    08.–10.08. lösten nichts aus):
    `curl -X POST -H "Authorization: Bearer $(cat ~/claude-cloud/secrets/coolify-token)" "https://coolify.jawollja.gmbh/api/v1/deploy?uuid=zk9l0fgnk0e9f5yqpyzqaa59"`
    (oder Cockpit/Coolify-UI). Build ≈ 1–2 min (npm ci mit devDependencies + astro build + nginx-Image).
