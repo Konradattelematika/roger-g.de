@@ -92,3 +92,12 @@ Statischer Build (`npm run build` → `dist/`). Läuft als Coolify-App `roger-g.
 Ein Push auf `main` deployt NICHT automatisch – Trigger und Ablauf in `docs/NAVIGATION.md` §9,
 Einrichtung in `DEPLOY.md`. Weil „Nächste Show"/„Vorbei" beim Build entschieden werden,
 nach jeder gespielten Show neu deployen.
+
+## SEO (Stand 13.11.2026)
+
+- Meta/Canonical/OG: `src/layouts/Layout.astro` (Canonical aus `Astro.site` = https://roger-g.de). Sitemap: `@astrojs/sitemap`
+  (`astro.config.mjs`), alle 3 Seiten enthalten; neue Seiten landen automatisch drin. `public/robots.txt` verweist darauf.
+- JSON-LD: `ComedyEvent` je Termin aus `src/data/tour.ts` in `src/components/TourDates.astro` (nur echte Termine).
+- `nginx.conf` (Dockerfile kopiert sie): 301 `www.roger-g.de` → Apex, HSTS (ohne includeSubDomains), nosniff, X-Frame-Options.
+  Neue `location`-Blöcke mit eigenem `add_header` müssen die Sicherheits-Header wiederholen.
+- Bewusst ohne JSON-LD/mehr Text: Impressum/Datenschutz (Rechtstexte).
