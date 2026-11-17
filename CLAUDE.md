@@ -91,7 +91,8 @@ SplitText-Buchstaben-Intro, Parallax & orchestrierte Scroll-Sequenzen in
 
 Statischer Build (`npm run build` → `dist/`). Läuft als Coolify-App `roger-g.de`
 (Dockerfile: node:22-alpine baut, nginx:alpine liefert aus; Domains roger-g.de + www).
-Ein Push auf `main` deployt NICHT automatisch – Trigger und Ablauf in `docs/NAVIGATION.md` §9,
+Ein Push auf `main` deployt nicht sofort, ABER der Skript-Loop `roger-g-rebuild` (seit 17.11.2026, `docs/SYSTEMONE.md`)
+deployt stündlich bei System-One-Änderungen und einmal täglich – was auf `main` liegt, ist also spätestens am Folgetag live – Trigger und Ablauf in `docs/NAVIGATION.md` §9,
 Einrichtung in `DEPLOY.md`. Weil „Nächste Show"/„Vorbei" beim Build entschieden werden,
 nach jeder gespielten Show neu deployen.
 
