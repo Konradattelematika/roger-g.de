@@ -4,7 +4,9 @@
 // Footer-Links MIT Slash: so liegen die Seiten in dist/ (impressum/index.html),
 // so stehen sie in Canonical und Sitemap. Ohne Slash antwortet das
 // nginx-Default-Image mit 301 auf http://…/impressum/ und Traefik dann 302 auf https.
-import { tourDates } from '../data/tour';
+import { getShows } from '../data/shows';
+
+const { tryout: tourDates } = await getShows();
 
 // Städte, nicht Shows (Hamburg zweimal) – gleiche Zählung wie in Marquee.astro
 const cityCount = new Set(tourDates.map((d) => d.city)).size;

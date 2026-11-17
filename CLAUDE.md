@@ -66,7 +66,9 @@ SplitText-Buchstaben-Intro, Parallax & orchestrierte Scroll-Sequenzen in
    scroll-shot oder shot.mjs mit `--reduced` nutzen.
 2. Nach größeren Änderungen: `npx lighthouse http://localhost:4321 --view` –
    Ziel: Performance ≥ 95, SEO = 100, Accessibility ≥ 95.
-3. Tourdaten werden NUR in `src/data/tour.ts` gepflegt. Schema.org-Markup und
+3. Tourdaten kommen aus `src/data/tour.ts` UND (seit 17.11.2026) beim Build aus System One
+   (`docs/SYSTEMONE.md`); Komponenten lesen sie über `getShows()` aus `src/data/shows.ts`.
+   Von Hand werden Termine NUR in `src/data/tour.ts` gepflegt. Schema.org-Markup und
    UI werden daraus generiert – niemals Termine hart ins HTML schreiben.
 4. Bilder: WebP/AVIF, `loading="lazy"` (außer Hero/LCP-Bild), immer width/height setzen.
 5. Deutsch als Seitensprache (`lang="de"`), Copy locker/direkt im Roger-G.-Ton –

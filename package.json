@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test tests/*.test.mts"
+    "test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test tests/*.test.mts",
+    "systemone:snapshot": "node scripts/systemone-snapshot.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

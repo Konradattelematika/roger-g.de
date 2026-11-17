@@ -8,14 +8,16 @@
 // wählen das Asset per Media Query.
 // Der Burst-Sticker existiert zweimal (Flow-Element mobil / Poster-Ecke
 // Desktop), sichtbar ist immer nur einer.
-import { tourDates } from '../data/tour';
+import { getShows } from '../data/shows';
 import { nextShow, nextShowLabel } from '../lib/dates';
 
 // „Nächste Show" = früheste noch nicht vergangene Show (Berliner Kalendertag,
 // zur Build-Zeit ausgewertet → nach jeder Show neu deployen). Vorher stand hier
 // stur tourDates[0], sodass ab dem 12.09.2026 eine gespielte Show als „nächste"
 // live stand. Ohne bevorstehende Show entfällt die Zeile (animations.ts prüft das).
-const next = nextShow(tourDates);
+// Termine aus tour.ts + System One (src/data/shows.ts).
+const { tryout } = await getShows();
+const next = nextShow(tryout.filter((d) => !d.cancelled));
 const nextLabel = next ? nextShowLabel(next) : null;
 ---
 

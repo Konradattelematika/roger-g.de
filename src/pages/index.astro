@@ -5,14 +5,16 @@ import Marquee from '../components/Marquee.astro';
 import TourDates from '../components/TourDates.astro';
 import Signup from '../components/Signup.astro';
 import About from '../components/About.astro';
-import {
-  tourName,
-  tourDescription,
-  tourDates,
-  soFreundeName,
-  soFreundeDescription,
-  soFreundeDates,
-} from '../data/tour';
+import { tourName, tourDescription, soFreundeName, soFreundeDescription } from '../data/tour';
+import { getShows } from '../data/shows';
+
+// Termine = tour.ts + System One (Build-Zeit, src/data/shows.ts).
+// Programme aus System One, die weder Try Out noch So Freunde sind (z. B. eine
+// neue Tour), bekommen je eine eigene Liste unter den beiden bestehenden –
+// Überschrift „Neue Termine", Programmname als Annotation. Leer → keine Sektion.
+const shows = await getShows();
+const slug = (s: string) =>
+  s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'termine';
 ---
 
 <Layout
@@ -29,7 +31,7 @@ import {
       watermark="26"
       schemaName={tourName}
       schemaDescription={tourDescription}
-      dates={tourDates}
+      dates={shows.tryout}
     />
     <TourDates
       id="so-freunde"
@@ -38,9 +40,22 @@ import {
       watermark="!"
       schemaName={soFreundeName}
       schemaDescription={soFreundeDescription}
-      dates={soFreundeDates}
+      dates={shows.soFreunde}
       note="Die große Tour, mit der alles anfing – und jetzt die letzte Runde: fünf Shows im März 2027, Rostock ist in die Stadthalle hochverlegt. Ist deine Show schon ausverkauft? Trag dich unten in die Warteliste ein, dann hörst du als Erste:r, wenn noch Tickets frei werden."
     />
+    {
+      shows.other.map((list) => (
+        <TourDates
+          id={`neu-${slug(list.production)}`}
+          heading="Neue Termine"
+          annotation={list.production}
+          watermark="Neu"
+          schemaName={`Roger G – ${list.production}`}
+          schemaDescription={`Stand Up Comedy: Roger G live – ${list.production}.`}
+          dates={list.dates}
+        />
+      ))
+    }
     <Signup />
     <About />
   </main>

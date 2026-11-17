@@ -14,6 +14,10 @@
 //    Datum/Location/Ort/Ausverkauft) + Ticketseiten der Veranstalter.
 //    Die Try-Out-Shows 2026 sind seit 2026-10-19 auf Konrads Wunsch als
 //    ausverkauft markiert (Anzeige „Ausverkauft · Vorbei").
+//  - Seit 2026-11-17 zusätzlich System One (Tourmanagement des Managements):
+//    src/data/shows.ts lädt beim Build alle für Roger sichtbaren Shows und
+//    führt sie mit diesen Listen zusammen (src/lib/systemone.ts, mergeDates).
+//    Was System One liefert, muss hier NICHT mehr nachgetragen werden.
 
 export interface TourDate {
   /** ISO-Datum mit Uhrzeit, z. B. "2026-10-02T20:00:00+02:00" */
@@ -26,6 +30,10 @@ export interface TourDate {
   /** Fehlt, solange der VVK-Link noch nicht bekannt ist → Karte zeigt „Tickets bald" */
   ticketUrl?: string;
   soldOut?: boolean;
+  /** Abgesagt (kommt aus System One, status.phase „C") → Karte „Abgesagt", JSON-LD EventCancelled */
+  cancelled?: boolean;
+  /** ISO-Ländercode, nur wenn nicht DE (kommt aus System One) */
+  country?: string;
 }
 
 // ── Try Out Tour 26 (Haupttour dieser Seite) ──────────────────────

@@ -28,7 +28,8 @@ const { id, heading, annotation, watermark, schemaName, schemaDescription, dates
 // Rechte Spalte je Karte: Ticket-Button nur für kommende, nicht ausverkaufte
 // Shows mit ticketUrl („Tickets bald", solange der Link fehlt) – sonst Label
 // „Ausverkauft" und/oder „Vorbei" (beides möglich).
-// Ein Ticketlink für eine gespielte Show wäre falsch.
+// Ein Ticketlink für eine gespielte Show wäre falsch. Abgesagte Shows (System One)
+// zeigen „Abgesagt" ohne Button und bleiben gedimmt in der Liste stehen.
 const { upcoming, past } = splitByPast(dates);
 const groups = [
   { shows: upcoming, isPast: false },
@@ -43,7 +44,9 @@ const jsonLd = {
     name: `${schemaName} – ${d.city}`,
     description: schemaDescription,
     startDate: d.date,
-    eventStatus: 'https://schema.org/EventScheduled',
+    eventStatus: d.cancelled
+      ? 'https://schema.org/EventCancelled'
+      : 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     performer: { '@type': 'Person', name: 'Roger G.' },
     location: {
@@ -52,7 +55,7 @@ const jsonLd = {
       address: {
         '@type': 'PostalAddress',
         addressLocality: d.city,
-        addressCountry: 'DE',
+        addressCountry: d.country ?? 'DE',
         ...(d.street ? { streetAddress: d.street } : {}),
         ...(d.postalCode ? { postalCode: d.postalCode } : {}),
       },
@@ -90,7 +93,7 @@ const jsonLd = {
           )}
           <ol class="dates" aria-labelledby={g.isPast ? `${id}-past` : undefined}>
             {g.shows.map((d) => (
-              <li class:list={['date-row', { 'is-past': g.isPast }]}>
+              <li class:list={['date-row', { 'is-past': g.isPast || d.cancelled }]}>
                 <time class="date-when" datetime={d.date}>
                   <span class="date-big">{posterDate(d.date).big}</span>
                   <span class="date-meta">{posterDate(d.date).meta}</span>
@@ -99,14 +102,15 @@ const jsonLd = {
                   <span class="date-city">{d.city}</span>
                   <span class="date-venue">{d.venue}</span>
                 </div>
-                {!g.isPast && !d.soldOut && d.ticketUrl ? (
+                {!g.isPast && !d.soldOut && !d.cancelled && d.ticketUrl ? (
                   <a class="btn date-btn" href={d.ticketUrl} target="_blank" rel="noopener">
                     Tickets für {d.city}
                   </a>
                 ) : (
                   <p class="date-status">
-                    {d.soldOut && <span class="date-label">Ausverkauft</span>}
-                    {!d.soldOut && !g.isPast && <span class="date-label">Tickets bald</span>}
+                    {d.cancelled && <span class="date-label">Abgesagt</span>}
+                    {!d.cancelled && d.soldOut && <span class="date-label">Ausverkauft</span>}
+                    {!d.cancelled && !d.soldOut && !g.isPast && <span class="date-label">Tickets bald</span>}
                     {g.isPast && <span class="date-past">Vorbei</span>}
                   </p>
                 )}
