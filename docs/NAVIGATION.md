@@ -19,7 +19,9 @@ Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie en
   Dockerfile: node:22-alpine baut `dist/` → **nginx:alpine mit Default-Konfiguration** (keine eigene `nginx.conf`).
 - **Daten:** Alle Termine stehen in **`src/data/tour.ts`** (zwei Arrays `tourDates`, `soFreundeDates` + Name/Beschreibung
   je Tour). Hero, beide Terminlisten, Laufband, About-CTA und das Schema.org-JSON-LD werden daraus generiert.
-  **Nie Termine ins HTML schreiben.** Build braucht kein Netz.
+  **Nie Termine ins HTML schreiben.** Seit 17.11.2026 kommen beim Build Termine aus **System One** dazu
+  (`src/data/shows.ts` → `getShows()`, Zuordnung/Merge `src/lib/systemone.ts`, alles in `docs/SYSTEMONE.md`):
+  **der Build ruft die API auf und bricht ab, wenn sie nicht erreichbar ist** (ohne Netz: `SYSTEMONE_OFFLINE=1`).
 - **Zeit ist eingefroren:** „Nächste Show" und das Label „Vorbei" werden **zur Build-Zeit** (Berliner Kalendertag)
   berechnet – nach jeder gespielten Show muss neu gebaut/deployt werden, sonst wirbt die Seite für eine vergangene Show
   (so geschehen 12.09.–27.09.2026, s. §12). Nächste Try-Out-Shows: 07.01., 08.01., 10.03.2027.
@@ -30,7 +32,8 @@ Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie en
   `Konradattelematika/roger-g.de` Branch `main`, Buildpack Dockerfile, Port 80, Domains `roger-g.de` + `www.roger-g.de`,
   Healthcheck aus, keine ENV-Variablen). **Kein automatischer Deploy** – alle 9 Deploys der Historie waren manuell (der Push vom 19.10. löste ebenfalls nichts aus).
   Nach einem Push den API-Trigger rufen (§9). Push/Deploy nur mit Konrads OK.
-- **Testen:** `npm test` (node:test, 16 Tests, ohne Netz, seit 27.09.2026) · `npm run build` (≈1,5 s) · Screenshots
+- **Testen:** `npm test` (node:test, ohne Netz; seit 17.11.2026 auch `tests/systemone.test.mts`) · `npm run build`
+  (≈1,5 s, braucht Netz für System One – sonst `SYSTEMONE_OFFLINE=1`) · Screenshots
   390/1440 px mit `scripts/shot.mjs` / `scripts/scroll-shot.mjs` (Pflicht laut `CLAUDE.md` bei visuellen Änderungen).
 - **Kein Loop, kein Cron:** Nichts läuft automatisch gegen dieses Repo (`grep -rl roger-g.de ~/claude-cloud/loops/`
   trifft nur den Innovations-Scout-Bericht). Uncommittete Änderungen hier sind folgenlos, bis jemand baut und deployt.
@@ -87,7 +90,9 @@ tryout-tour/                      (Klon von github.com/Konradattelematika/roger-
 │   ├── shot.mjs                  Screenshot: <url> <breite> <out.png> [--full] [--reduced] [--wait ms]; Pfad zur headless-shell-Revision 1228 fest verdrahtet
 │   └── scroll-shot.mjs           scrollt zu <selector>, wartet 1,6 s (ScrollTrigger), dann Viewport-Screenshot
 ├── src/
-│   ├── data/tour.ts              ⭐ EINZIGE Datenquelle: Interface TourDate {date (ISO mit Offset), city, venue, street?, postalCode?, ticketUrl, soldOut?}, beide Listen, Namen, Beschreibungen, Quellen-Kommentar
+│   ├── data/shows.ts             (17.11.) `getShows()`: tour.ts + System One (Build-Zeit), Abbruch bei API-Ausfall, Snapshot `systemone-snapshot.json` – Komponenten lesen Termine NUR hierüber
+│   ├── data/tour.ts              ⭐ handgepflegte Termine (seit 17.11. ergänzt um System One): Interface TourDate {date (ISO mit Offset), city, venue, street?, postalCode?, ticketUrl, soldOut?}, beide Listen, Namen, Beschreibungen, Quellen-Kommentar
+│   ├── lib/systemone.ts          (17.11.) System One: Mapping, Zuordnung zu den Listen, Merge mit tour.ts (reine Funktionen, `docs/SYSTEMONE.md`)
 │   ├── lib/dates.ts              (27.09.) parseIso (Jahr 2000–2099, sonst Build-Abbruch), berlinDay, berlinOffset, posterDate, nextShowLabel, isPast, nextShow – alles in Europe/Berlin
 │   ├── layouts/Layout.astro      <html lang=de>, Meta/Canonical/OG/Sitemap-Link, theme-color, Favicon, Klaviyo-Loader (company_id UXG8NH) + Init-Snippet, slot name=head, lädt animations.ts
 │   ├── pages/index.astro         Reihenfolge: Hero → Marquee → TourDates#termine → TourDates#so-freunde → Signup#anmelden → About#about (+Footer)

@@ -51,16 +51,25 @@ export interface ApiTourDate extends TourDate {
   /** Programm-/Eventname aus System One (für die Listen-Zuordnung) */
   production: string;
   list: ListKey;
+  /** false = System One nennt keine lesbare Uhrzeit → die 20:00 in `date` ist nur ein Platzhalter */
+  timeKnown: boolean;
+  /** false = System One nennt keinen Venue-Namen → `venue` ist ersatzweise die Stadt */
+  venueKnown: boolean;
 }
 
-/** „20:00 Uhr" / „20:00 - 20:00" / „19:30" → „20:00"; unbrauchbar → 20:00 (wie bei allen Try-Out-Shows angenommen). */
-export function parsePerformanceTime(raw: string | null | undefined): string {
+/** „20:00 Uhr" / „20:00 - 20:00" / „19:30" → „20:00"; `null`, wenn keine brauchbare Uhrzeit drinsteht. */
+export function readPerformanceTime(raw: string | null | undefined): string | null {
   const m = /(\d{1,2})[:.](\d{2})/.exec(raw ?? '');
-  if (!m) return '20:00';
+  if (!m) return null;
   const h = Number(m[1]);
   const min = Number(m[2]);
-  if (h > 23 || min > 59) return '20:00';
+  if (h > 23 || min > 59) return null;
   return `${String(h).padStart(2, '0')}:${m[2]}`;
+}
+
+/** Wie readPerformanceTime, aber mit dem Platzhalter 20:00 (wie bei allen Try-Out-Shows angenommen), wenn die Uhrzeit fehlt. */
+export function parsePerformanceTime(raw: string | null | undefined): string {
+  return readPerformanceTime(raw) ?? '20:00';
 }
 
 /**
@@ -107,13 +116,18 @@ export function mapShow(raw: SystemOneShow, artistId = SYSTEMONE_ARTIST_ID): Api
     raw.status?.phase === 'C' || /^\s*abgesagt\b/i.test(raw.eventName ?? '');
   const url = clean(raw.tickets?.url);
   const country = clean(raw.venue?.countryCode).toUpperCase();
+  const venueName = clean(raw.venue?.name);
   const show: ApiTourDate = {
     systemOneId: raw.id,
     production,
     list: classify(`${production} ${raw.eventName ?? ''}`),
+    // Platzhalter (20:00 / Stadt als Venue) kenntlich machen: mergeDates lässt sie
+    // keine recherchierten Werte aus tour.ts überschreiben.
+    timeKnown: readPerformanceTime(raw.performanceTime) !== null,
+    venueKnown: venueName !== '',
     date: toBerlinIso(raw.date.value, raw.performanceTime),
     city,
-    venue: clean(raw.venue?.name) || city,
+    venue: venueName || city,
   };
   if (clean(raw.venue?.street)) show.street = clean(raw.venue?.street);
   if (clean(raw.venue?.postalCode)) show.postalCode = clean(raw.venue?.postalCode);
@@ -124,15 +138,30 @@ export function mapShow(raw: SystemOneShow, artistId = SYSTEMONE_ARTIST_ID): Api
   return show;
 }
 
-/** Alle Shows einer API-Antwort umwandeln; doppelte IDs nur einmal. */
-export function mapResponse(shows: SystemOneShow[], artistId = SYSTEMONE_ARTIST_ID): ApiTourDate[] {
+/**
+ * Alle Shows einer API-Antwort umwandeln; doppelte IDs nur einmal.
+ * Ein einzelner kaputter Datensatz (z. B. unlesbares Datum „TBA") wird mit einer
+ * Warnung übersprungen, statt die ganze Antwort zu verwerfen.
+ */
+export function mapResponse(
+  shows: SystemOneShow[],
+  artistId = SYSTEMONE_ARTIST_ID,
+  warn: (message: string) => void = console.warn
+): ApiTourDate[] {
   const seen = new Set<number>();
   const out: ApiTourDate[] = [];
   for (const raw of shows) {
-    if (seen.has(raw.id)) continue;
-    seen.add(raw.id);
-    const show = mapShow(raw, artistId);
-    if (show) out.push(show);
+    try {
+      if (typeof raw.id === 'number') {
+        if (seen.has(raw.id)) continue;
+        seen.add(raw.id);
+      }
+      const show = mapShow(raw, artistId);
+      if (show) out.push(show);
+    } catch (err) {
+      const id = (raw as SystemOneShow | null)?.id ?? '?';
+      warn(`[systemone] Show ${id} übersprungen: ${(err as Error).message}`);
+    }
   }
   return out;
 }
@@ -153,30 +182,73 @@ export function sameShow(a: TourDate, b: TourDate): boolean {
   return a.date.slice(0, 10) === b.date.slice(0, 10) && cityKey(a.city) === cityKey(b.city);
 }
 
+/** Interne Felder der API-Show entfernen → reines TourDate für die Seite. */
+function toTourDate(a: TourDate): TourDate {
+  const {
+    systemOneId: _id,
+    production: _p,
+    list: _l,
+    timeKnown: _t,
+    venueKnown: _v,
+    ...fields
+  } = a as ApiTourDate;
+  return fields;
+}
+
+/** Uhrzeit „HH:MM" aus dem ISO-String (Ortszeit der Show). */
+const timeOfDay = (d: TourDate) => d.date.slice(11, 16);
+
 /**
  * Handgepflegte Liste (tour.ts) mit System-One-Shows zusammenführen.
- * - Show in beiden: System One gewinnt bei Uhrzeit, Venue, Ticketlink,
- *   Ausverkauft/Abgesagt; Adressfelder aus tour.ts bleiben, wenn System One keine hat.
+ * - Show in beiden (gleicher Tag + gleiche Stadt): System One gewinnt bei Uhrzeit,
+ *   Venue, Ticketlink, Ausverkauft/Abgesagt – aber nur mit ECHTEN Werten: nennt
+ *   System One keine Uhrzeit bzw. keinen Venue-Namen, bleiben Uhrzeit bzw. Venue aus
+ *   tour.ts stehen (die Platzhalter 20:00 / Stadt überschreiben keine Recherche).
+ *   Adressfelder und Ticketlink aus tour.ts bleiben, wenn System One keine hat.
  *   Ein in tour.ts gesetztes soldOut bleibt bestehen (z. B. Shows, die Konrad
  *   bewusst als ausverkauft markiert hat), System One kann es nur ergänzen.
+ * - Jeder tour.ts-Eintrag wird höchstens EINER System-One-Show zugeordnet, und
+ *   System-One-Shows werden nie untereinander zusammengelegt (sie haben eigene IDs):
+ *   zwei Shows am selben Tag in derselben Stadt (Doppel-/Zusatzshow) bleiben zwei
+ *   Karten. Bei mehreren Kandidaten gewinnt die Show mit derselben Uhrzeit.
  * - Nur in System One: wird ergänzt.
  * - Nur in tour.ts: bleibt unverändert (bisherige Recherche, gespielte Shows).
  * Ergebnis chronologisch.
  */
 export function mergeDates(local: TourDate[], api: TourDate[]): TourDate[] {
   const merged: TourDate[] = local.map((d) => ({ ...d }));
+  // Zuordnung API-Show → Index des tour.ts-Eintrags. Gesucht wird nur in `local`
+  // (nie in frisch ergänzten API-Shows), jeder Index wird höchstens einmal vergeben.
+  const partner = new Map<TourDate, number>();
+  const taken = new Set<number>();
+  const hasRealTime = (a: TourDate) => (a as Partial<ApiTourDate>).timeKnown !== false;
+  // 1. Durchgang: gleicher Tag + Stadt + exakt gleiche Uhrzeit, 2. Durchgang: gleicher Tag + Stadt.
+  for (const exactTime of [true, false]) {
+    for (const a of api) {
+      if (partner.has(a) || (exactTime && !hasRealTime(a))) continue;
+      const i = local.findIndex(
+        (d, idx) =>
+          !taken.has(idx) && sameShow(d, a) && (!exactTime || timeOfDay(d) === timeOfDay(a))
+      );
+      if (i === -1) continue;
+      partner.set(a, i);
+      taken.add(i);
+    }
+  }
   for (const a of api) {
-    const i = merged.findIndex((d) => sameShow(d, a));
-    // Nur TourDate-Felder übernehmen (ohne systemOneId/production/list)
-    const { systemOneId: _id, production: _p, list: _l, ...fields } = a as ApiTourDate;
-    if (i === -1) {
+    const fields = toTourDate(a);
+    const i = partner.get(a);
+    if (i === undefined) {
       merged.push(fields);
       continue;
     }
     const old = merged[i];
+    const flags = a as Partial<ApiTourDate>;
     merged[i] = {
       ...old,
       ...fields,
+      date: flags.timeKnown === false ? old.date : fields.date,
+      venue: flags.venueKnown === false ? old.venue : fields.venue,
       street: fields.street ?? old.street,
       postalCode: fields.postalCode ?? old.postalCode,
       ticketUrl: fields.ticketUrl ?? old.ticketUrl,
@@ -201,8 +273,7 @@ export function groupOther(api: ApiTourDate[]): ExtraList[] {
   const groups = new Map<string, TourDate[]>();
   for (const a of api.filter((x) => x.list === 'other')) {
     const key = a.production || 'Neue Termine';
-    const { systemOneId: _id, production: _p, list: _l, ...fields } = a;
-    groups.set(key, [...(groups.get(key) ?? []), fields]);
+    groups.set(key, [...(groups.get(key) ?? []), a]);
   }
   return [...groups.entries()]
     .map(([production, dates]) => ({ production, dates: mergeDates([], dates) }))
