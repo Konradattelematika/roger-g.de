@@ -55,6 +55,8 @@ export interface ApiTourDate extends TourDate {
   timeKnown: boolean;
   /** false = System One nennt keinen Venue-Namen → `venue` ist ersatzweise die Stadt */
   venueKnown: boolean;
+  /** true = System One nennt den Ausverkauft-Status ausdrücklich (true ODER false) → er gilt vor tour.ts */
+  soldOutKnown: boolean;
 }
 
 /** „20:00 Uhr" / „20:00 - 20:00" / „19:30" → „20:00"; `null`, wenn keine brauchbare Uhrzeit drinsteht. */
@@ -125,6 +127,7 @@ export function mapShow(raw: SystemOneShow, artistId = SYSTEMONE_ARTIST_ID): Api
     // keine recherchierten Werte aus tour.ts überschreiben.
     timeKnown: readPerformanceTime(raw.performanceTime) !== null,
     venueKnown: venueName !== '',
+    soldOutKnown: typeof raw.tickets?.soldOut === 'boolean',
     date: toBerlinIso(raw.date.value, raw.performanceTime),
     city,
     venue: venueName || city,
@@ -140,8 +143,9 @@ export function mapShow(raw: SystemOneShow, artistId = SYSTEMONE_ARTIST_ID): Api
 
 /**
  * Alle Shows einer API-Antwort umwandeln; doppelte IDs nur einmal.
- * Ein einzelner kaputter Datensatz (z. B. unlesbares Datum „TBA") wird mit einer
- * Warnung übersprungen, statt die ganze Antwort zu verwerfen.
+ * Ein einzelner unbrauchbarer Datensatz (unlesbares Datum „TBA", fehlende Stadt) wird mit einer
+ * Warnung übersprungen, statt die ganze Antwort zu verwerfen. Jede Warnung = ein übersprungener
+ * Datensatz (buildShows zählt mit; sind ALLE unbrauchbar, bricht loadShows ab).
  */
 export function mapResponse(
   shows: SystemOneShow[],
@@ -158,6 +162,9 @@ export function mapResponse(
       }
       const show = mapShow(raw, artistId);
       if (show) out.push(show);
+      else if (raw.artist?.id === undefined || raw.artist.id === artistId) {
+        warn(`[systemone] Show ${raw.id ?? '?'} übersprungen: Datum oder Stadt fehlt`);
+      }
     } catch (err) {
       const id = (raw as SystemOneShow | null)?.id ?? '?';
       warn(`[systemone] Show ${id} übersprungen: ${(err as Error).message}`);
@@ -177,9 +184,43 @@ function cityKey(city: string): string {
     .filter(Boolean)[0] ?? '';
 }
 
-/** Gleiche Show = gleicher Kalendertag (laut Datumsstring, Berlin) + gleiche Stadt. */
+/**
+ * Kandidat für dieselbe Show: gleicher Kalendertag (laut Datumsstring, Berlin) + gleiche Stadt.
+ * Das ist nötig, aber nicht hinreichend – ob wirklich zusammengeführt wird, entscheidet matchStrength.
+ */
 export function sameShow(a: TourDate, b: TourDate): boolean {
   return a.date.slice(0, 10) === b.date.slice(0, 10) && cityKey(a.city) === cityKey(b.city);
+}
+
+/** Klein, ohne Akzente/ß, nur Buchstaben und Ziffern – als Wortliste. */
+function words(text: string): string[] {
+  return text
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/ß/g, 'ss')
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+}
+
+/** Venue-Name als Wortliste ohne die Wörter der Stadt: „Stadthalle Rostock" (Rostock) → [stadthalle]. */
+function venueWords(d: TourDate): string[] {
+  const city = new Set(words(d.city));
+  const all = words(d.venue);
+  const own = all.filter((w) => !city.has(w));
+  return own.length > 0 ? own : all;
+}
+
+/**
+ * Dieselbe Spielstätte: gleiche Wörter, oder ein Name ist der Anfang des anderen
+ * („Indra" ≙ „Indra Musikclub", „FZW" ≙ „FZW / Freizeitzentrum West"). Bewusst streng:
+ * „Saal A" und „Saal B" oder „Comedy Club X" und „Comedy Club Y" sind verschieden.
+ */
+export function sameVenue(a: TourDate, b: TourDate): boolean {
+  const x = venueWords(a);
+  const y = venueWords(b);
+  const [short, long] = x.length <= y.length ? [x, y] : [y, x];
+  return short.length > 0 && short.every((w, i) => long[i] === w);
 }
 
 /** Interne Felder der API-Show entfernen → reines TourDate für die Seite. */
@@ -188,51 +229,96 @@ function toTourDate(a: TourDate): TourDate {
     systemOneId: _id,
     production: _p,
     list: _l,
-    timeKnown: _t,
+    timeKnown,
     venueKnown: _v,
+    soldOutKnown: _s,
     ...fields
   } = a as ApiTourDate;
-  return fields;
+  // Unbekannte Beginnzeit bleibt im Seitenmodell erkennbar (JSON-LD/datetime nennen dann nur das Datum).
+  return timeKnown === false ? { ...fields, timeUnknown: true } : fields;
 }
 
 /** Uhrzeit „HH:MM" aus dem ISO-String (Ortszeit der Show). */
 const timeOfDay = (d: TourDate) => d.date.slice(11, 16);
+const minutesOfDay = (d: TourDate) => Number(d.date.slice(11, 13)) * 60 + Number(d.date.slice(14, 16));
+
+/**
+ * So weit dürfen die Beginnzeiten auseinanderliegen, damit es als Zeitkorrektur DERSELBEN Show
+ * gilt. Liegt mehr dazwischen, ist es eine eigene Show (z. B. Nachmittags- und Abendshow).
+ */
+export const SAME_SHOW_MAX_MINUTES = 90;
+
+/**
+ * Wie sicher sind tour.ts-Eintrag `d` und System-One-Show `a` dieselbe Veranstaltung?
+ * Voraussetzung ist immer gleicher Tag + gleiche Stadt (sameShow). Darüber hinaus:
+ *   2 = gleiche Beginnzeit – niemand spielt zeitgleich zwei Shows, also dieselbe Show,
+ *       auch wenn der Venue-Name abweicht (Verlegung, andere Schreibweise).
+ *   1 = die Spielstätte passt (oder System One nennt keine) UND die Beginnzeit liegt höchstens
+ *       SAME_SHOW_MAX_MINUTES daneben (oder System One nennt keine) – eine Zeitkorrektur.
+ *   0 = nicht zusammenführen: andere Spielstätte mit anderer Uhrzeit, oder dieselbe Spielstätte
+ *       mit großem Zeitabstand (Zusatzshow). Beide Termine bleiben stehen – ein sichtbarer
+ *       Doppeleintrag ist harmloser als ein überschriebener Termin samt Ticketlink.
+ */
+function matchStrength(d: TourDate, a: TourDate): 0 | 1 | 2 {
+  if (!sameShow(d, a)) return 0;
+  const flags = a as Partial<ApiTourDate>;
+  const timeKnown = flags.timeKnown !== false;
+  const venueKnown = flags.venueKnown !== false;
+  if (timeKnown && timeOfDay(d) === timeOfDay(a)) return 2;
+  const venueFits = !venueKnown || sameVenue(d, a);
+  const timeFits = !timeKnown || Math.abs(minutesOfDay(d) - minutesOfDay(a)) <= SAME_SHOW_MAX_MINUTES;
+  return venueFits && timeFits ? 1 : 0;
+}
 
 /**
  * Handgepflegte Liste (tour.ts) mit System-One-Shows zusammenführen.
- * - Show in beiden (gleicher Tag + gleiche Stadt): System One gewinnt bei Uhrzeit,
- *   Venue, Ticketlink, Ausverkauft/Abgesagt – aber nur mit ECHTEN Werten: nennt
- *   System One keine Uhrzeit bzw. keinen Venue-Namen, bleiben Uhrzeit bzw. Venue aus
- *   tour.ts stehen (die Platzhalter 20:00 / Stadt überschreiben keine Recherche).
- *   Adressfelder und Ticketlink aus tour.ts bleiben, wenn System One keine hat.
- *   Ein in tour.ts gesetztes soldOut bleibt bestehen (z. B. Shows, die Konrad
- *   bewusst als ausverkauft markiert hat), System One kann es nur ergänzen.
+ * - Zusammengeführt wird nur bei eindeutiger Zuordnung (matchStrength): gleicher Tag + Stadt
+ *   UND gleiche Beginnzeit, oder gleiche Spielstätte mit ähnlicher Beginnzeit. Sonst bleiben
+ *   beide Termine stehen und der Build-Log nennt den möglichen Doppeleintrag (`warn`).
+ * - Zusammengeführte Show: System One gewinnt bei Uhrzeit, Venue, Ticketlink,
+ *   Ausverkauft/Abgesagt – aber nur mit ECHTEN Werten: nennt System One keine Uhrzeit bzw.
+ *   keinen Venue-Namen, bleiben Uhrzeit bzw. Venue aus tour.ts stehen (die Platzhalter
+ *   20:00 / Stadt überschreiben keine Recherche). Der Ticketlink aus tour.ts bleibt, wenn
+ *   System One keinen hat; Straße/PLZ aus tour.ts nur, wenn es dieselbe Spielstätte ist
+ *   (nach einer Verlegung gehörte die alte Adresse sonst zum neuen Venue).
+ *   Ausverkauft: nennt System One den Status ausdrücklich, gilt er – auch „wieder Karten
+ *   da"; nur ohne Angabe bleibt der Stand aus tour.ts.
  * - Jeder tour.ts-Eintrag wird höchstens EINER System-One-Show zugeordnet, und
  *   System-One-Shows werden nie untereinander zusammengelegt (sie haben eigene IDs):
- *   zwei Shows am selben Tag in derselben Stadt (Doppel-/Zusatzshow) bleiben zwei
- *   Karten. Bei mehreren Kandidaten gewinnt die Show mit derselben Uhrzeit.
+ *   zwei Shows am selben Tag in derselben Stadt (Doppel-/Zusatzshow) bleiben zwei Karten.
  * - Nur in System One: wird ergänzt.
  * - Nur in tour.ts: bleibt unverändert (bisherige Recherche, gespielte Shows).
  * Ergebnis chronologisch.
  */
-export function mergeDates(local: TourDate[], api: TourDate[]): TourDate[] {
+export function mergeDates(
+  local: TourDate[],
+  api: TourDate[],
+  warn: (message: string) => void = () => {}
+): TourDate[] {
   const merged: TourDate[] = local.map((d) => ({ ...d }));
   // Zuordnung API-Show → Index des tour.ts-Eintrags. Gesucht wird nur in `local`
   // (nie in frisch ergänzten API-Shows), jeder Index wird höchstens einmal vergeben.
   const partner = new Map<TourDate, number>();
   const taken = new Set<number>();
-  const hasRealTime = (a: TourDate) => (a as Partial<ApiTourDate>).timeKnown !== false;
-  // 1. Durchgang: gleicher Tag + Stadt + exakt gleiche Uhrzeit, 2. Durchgang: gleicher Tag + Stadt.
-  for (const exactTime of [true, false]) {
+  // Erst die sicheren Paare (gleiche Beginnzeit), dann die plausiblen (Stufe 1) –
+  // bei mehreren Kandidaten der mit dem kleinsten Zeitabstand.
+  for (const wanted of [2, 1] as const) {
     for (const a of api) {
-      if (partner.has(a) || (exactTime && !hasRealTime(a))) continue;
-      const i = local.findIndex(
-        (d, idx) =>
-          !taken.has(idx) && sameShow(d, a) && (!exactTime || timeOfDay(d) === timeOfDay(a))
-      );
-      if (i === -1) continue;
-      partner.set(a, i);
-      taken.add(i);
+      if (partner.has(a)) continue;
+      const timeKnown = (a as Partial<ApiTourDate>).timeKnown !== false;
+      let best = -1;
+      let bestGap = Infinity;
+      local.forEach((d, i) => {
+        if (taken.has(i) || matchStrength(d, a) < wanted) return;
+        const gap = timeKnown ? Math.abs(minutesOfDay(d) - minutesOfDay(a)) : 0;
+        if (gap < bestGap) {
+          best = i;
+          bestGap = gap;
+        }
+      });
+      if (best === -1) continue;
+      partner.set(a, best);
+      taken.add(best);
     }
   }
   for (const a of api) {
@@ -240,19 +326,33 @@ export function mergeDates(local: TourDate[], api: TourDate[]): TourDate[] {
     const i = partner.get(a);
     if (i === undefined) {
       merged.push(fields);
+      // Gleicher Tag + Stadt wie ein nicht zugeordneter tour.ts-Eintrag, aber zu verschieden
+      // zum Zusammenführen: beide Karten bleiben – im Build-Log darauf hinweisen.
+      const near = local.findIndex((d, idx) => !taken.has(idx) && sameShow(d, a));
+      if (near !== -1) {
+        warn(
+          `[systemone] ${a.date.slice(0, 10)} ${a.city}: „${a.venue}" ${timeOfDay(a)} (System One) und ` +
+            `„${local[near].venue}" ${timeOfDay(local[near])} (tour.ts) nicht zusammengeführt – andere ` +
+            `Spielstätte/Uhrzeit, beide Karten bleiben. Ist es dieselbe Show, den tour.ts-Eintrag entfernen.`
+        );
+      }
       continue;
     }
     const old = merged[i];
     const flags = a as Partial<ApiTourDate>;
+    const keepTime = flags.timeKnown === false;
+    const keepVenue = flags.venueKnown === false;
+    const venueUnchanged = keepVenue || sameVenue(old, a);
     merged[i] = {
       ...old,
       ...fields,
-      date: flags.timeKnown === false ? old.date : fields.date,
-      venue: flags.venueKnown === false ? old.venue : fields.venue,
-      street: fields.street ?? old.street,
-      postalCode: fields.postalCode ?? old.postalCode,
+      date: keepTime ? old.date : fields.date,
+      timeUnknown: keepTime ? old.timeUnknown : undefined,
+      venue: keepVenue ? old.venue : fields.venue,
+      street: fields.street ?? (venueUnchanged ? old.street : undefined),
+      postalCode: fields.postalCode ?? (venueUnchanged ? old.postalCode : undefined),
       ticketUrl: fields.ticketUrl ?? old.ticketUrl,
-      soldOut: old.soldOut || fields.soldOut || undefined,
+      soldOut: flags.soldOutKnown ? fields.soldOut : old.soldOut || fields.soldOut || undefined,
       cancelled: fields.cancelled || undefined,
     };
     for (const k of Object.keys(merged[i]) as Array<keyof TourDate>) {

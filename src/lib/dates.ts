@@ -97,3 +97,12 @@ export function splitByPast(
     past: sorted.filter((d) => isPast(d.date, now, timeZone)),
   };
 }
+
+/**
+ * Maschinenlesbares Datum einer Show für JSON-LD (`startDate`) und `<time datetime>`:
+ * mit Uhrzeit – außer die Beginnzeit ist unbekannt (`timeUnknown`), dann nur der Kalendertag.
+ * Eine nicht bestätigte Uhrzeit wird so nirgends als Tatsache veröffentlicht.
+ */
+export function machineDate(show: Pick<TourDate, 'date' | 'timeUnknown'>): string {
+  return show.timeUnknown ? show.date.slice(0, 10) : show.date;
+}

@@ -19,6 +19,9 @@ for (let page = 1; page <= 10; page++) {
   if (!res.ok) throw new Error(`System One: HTTP ${res.status}`);
   const body = await res.json();
   if (!Array.isArray(body?.data)) throw new Error('System One: Antwort ohne data-Array');
+  if ((body.pagination?.pageCount ?? 1) > 10) {
+    throw new Error(`System One: ${body.pagination.pageCount} Seiten gemeldet, das Skript holt höchstens 10 – Snapshot wäre unvollständig`);
+  }
   data.push(...body.data);
   if (!body.pagination || page >= body.pagination.pageCount) break;
 }

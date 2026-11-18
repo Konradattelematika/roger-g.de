@@ -34,6 +34,11 @@ export interface TourDate {
   cancelled?: boolean;
   /** ISO-Ländercode, nur wenn nicht DE (kommt aus System One) */
   country?: string;
+  /**
+   * Beginnzeit unbekannt (System One nennt keine): `date` trägt dann nur den Platzhalter
+   * 20:00 – JSON-LD und `<time datetime>` geben das reine Datum aus (machineDate in dates.ts).
+   */
+  timeUnknown?: boolean;
 }
 
 // ── Try Out Tour 26 (Haupttour dieser Seite) ──────────────────────

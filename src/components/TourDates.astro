@@ -1,6 +1,6 @@
 ---
 import type { TourDate } from '../data/tour';
-import { posterDate, splitByPast } from '../lib/dates';
+import { machineDate, posterDate, splitByPast } from '../lib/dates';
 
 interface Props {
   /** Anker-ID der Sektion, z. B. "termine" */
@@ -43,7 +43,8 @@ const jsonLd = {
     '@type': 'ComedyEvent',
     name: `${schemaName} – ${d.city}`,
     description: schemaDescription,
-    startDate: d.date,
+    // ohne bestätigte Beginnzeit nur das Datum (machineDate) – keine erfundene Uhrzeit ins Markup
+    startDate: machineDate(d),
     eventStatus: d.cancelled
       ? 'https://schema.org/EventCancelled'
       : 'https://schema.org/EventScheduled',
@@ -94,7 +95,7 @@ const jsonLd = {
           <ol class="dates" aria-labelledby={g.isPast ? `${id}-past` : undefined}>
             {g.shows.map((d) => (
               <li class:list={['date-row', { 'is-past': g.isPast || d.cancelled }]}>
-                <time class="date-when" datetime={d.date}>
+                <time class="date-when" datetime={machineDate(d)}>
                   <span class="date-big">{posterDate(d.date).big}</span>
                   <span class="date-meta">{posterDate(d.date).meta}</span>
                 </time>

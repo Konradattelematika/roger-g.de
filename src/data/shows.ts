@@ -3,16 +3,16 @@
 //
 // Ablauf beim `npm run build` (loadShows):
 //  1. System-One-API live abfragen (alle Seiten, Timeout 15 s, bis zu 3 Versuche).
-//     Einzelne kaputte Datensätze werden mit Warnung übersprungen (mapResponse).
-//  2. Klappt der Abruf nicht (Netz, 5xx, kaputtes JSON):
-//     - Snapshot src/data/systemone-snapshot.json, WENN er Termine enthält und höchstens
-//       SNAPSHOT_MAX_AGE_DAYS alt ist (`npm run systemone:snapshot` + committen);
-//     - sonst BRICHT DER BUILD AB. Dann bleibt die bisher deployte Version mit ihren
-//       Terminen live (Coolify tauscht den Container nur nach einem erfolgreichen Build)
-//       und der Loop roger-g-rebuild meldet den Fehlschlag per Mail. Vorher fiel der Build
-//       still auf den (leeren) Snapshot zurück – die Termine wären von der Seite verschwunden.
-//  3. SYSTEMONE_OFFLINE=1 baut bewusst mit dem Snapshot, egal wie alt (Arbeiten ohne
-//     Netz, Notfall-Deploy bei längerem API-Ausfall).
+//     Einzelne unbrauchbare Datensätze werden mit Warnung übersprungen (mapResponse).
+//  2. Klappt der Abruf nicht (Netz, 5xx, kaputtes JSON) oder ist KEIN einziger gelieferter
+//     Datensatz lesbar, BRICHT DER BUILD AB. Dann bleibt die bisher deployte Version mit
+//     ihren Terminen live (Coolify tauscht den Container nur nach einem erfolgreichen Build)
+//     und der Loop roger-g-rebuild meldet den Fehlschlag per Mail. Es gibt bewusst keinen
+//     automatischen Rückfall auf den Snapshot: der kann älter sein als der zuletzt
+//     veröffentlichte Stand und würde seither veröffentlichte Termine wieder entfernen.
+//  3. SYSTEMONE_OFFLINE=1 baut bewusst mit dem committeten Snapshot
+//     src/data/systemone-snapshot.json (`npm run systemone:snapshot`) – nur für Arbeiten
+//     ohne Netz, nicht als Ausfallsicherung.
 // Besucher laden NICHTS von System One (kein Drittanbieter-Request im Browser,
 // Datenschutzerklärung bleibt davon unberührt). Folge: neue Termine/Ausverkauft
 // erscheinen erst nach einem neuen Build/Deploy.
@@ -39,6 +39,8 @@ export interface Shows {
   /** Woher die System-One-Daten stammen: live | snapshot */
   source: 'live' | 'snapshot';
   apiCount: number;
+  /** Gelieferte Datensätze, die nicht lesbar waren und übersprungen wurden */
+  skipped: number;
 }
 
 export function systemOneQuery(page: number): string {
@@ -53,10 +55,13 @@ export function systemOneQuery(page: number): string {
   return `${SYSTEMONE_URL}?${q}`;
 }
 
+/** Mehr Seiten ruft fetchSystemOne nicht ab – meldet die API mehr, ist das ein Fehler (keine Teilliste veröffentlichen). */
+const MAX_PAGES = 10;
+
 /** Alle Seiten der API laden (max. 10 × 500 Shows). Wirft bei jedem Fehler. */
 export async function fetchSystemOne(fetchImpl: typeof fetch = fetch): Promise<SystemOneShow[]> {
   const all: SystemOneShow[] = [];
-  for (let page = 1; page <= 10; page++) {
+  for (let page = 1; page <= MAX_PAGES; page++) {
     const res = await fetchImpl(systemOneQuery(page), {
       headers: { accept: 'application/json' },
       signal: AbortSignal.timeout(15_000),
@@ -64,6 +69,11 @@ export async function fetchSystemOne(fetchImpl: typeof fetch = fetch): Promise<S
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = (await res.json()) as SystemOneResponse;
     if (!Array.isArray(body?.data)) throw new Error('Antwort ohne data-Array');
+    if ((body.pagination?.pageCount ?? 1) > MAX_PAGES) {
+      throw new Error(
+        `${body.pagination?.pageCount} Seiten gemeldet, abgerufen werden höchstens ${MAX_PAGES} – die Liste wäre unvollständig`
+      );
+    }
     all.push(...body.data);
     if (!body.pagination || page >= body.pagination.pageCount) break;
   }
@@ -75,13 +85,19 @@ export function buildShows(
   source: Shows['source'],
   warn: (message: string) => void = console.warn
 ): Shows {
-  const api = mapResponse(raw, SYSTEMONE_ARTIST_ID, warn);
+  // Jede Warnung aus mapResponse steht für einen übersprungenen Datensatz.
+  let skipped = 0;
+  const api = mapResponse(raw, SYSTEMONE_ARTIST_ID, (message) => {
+    skipped++;
+    warn(message);
+  });
   return {
-    tryout: mergeDates(tourDates, api.filter((a) => a.list === 'tryout')),
-    soFreunde: mergeDates(soFreundeDates, api.filter((a) => a.list === 'soFreunde')),
+    tryout: mergeDates(tourDates, api.filter((a) => a.list === 'tryout'), warn),
+    soFreunde: mergeDates(soFreundeDates, api.filter((a) => a.list === 'soFreunde'), warn),
     other: groupOther(api),
     source,
     apiCount: api.length,
+    skipped,
   };
 }
 
@@ -91,20 +107,10 @@ export interface SystemOneSnapshot {
   data?: SystemOneShow[];
 }
 
-/** So alt darf der Snapshot höchstens sein, um einen fehlgeschlagenen Abruf zu ersetzen. */
-export const SNAPSHOT_MAX_AGE_DAYS = 3;
-
-/** Alter des Snapshots in Tagen (Infinity ohne lesbares `fetchedAt`). */
-export function snapshotAgeDays(snap: SystemOneSnapshot, now: Date = new Date()): number {
-  const fetched = Date.parse(snap.fetchedAt ?? '');
-  return Number.isNaN(fetched) ? Infinity : (now.getTime() - fetched) / 86_400_000;
-}
-
 export interface LoadOptions {
   fetchImpl?: typeof fetch;
   env?: Record<string, string | undefined>;
   snapshot?: SystemOneSnapshot;
-  now?: Date;
   /** Versuche für den Live-Abruf – überbrückt kurze Aussetzer der API */
   attempts?: number;
   retryDelayMs?: number;
@@ -114,15 +120,14 @@ export interface LoadOptions {
 
 /**
  * Termine laden – Kern von getShows() ohne Cache, in Tests mit eigenem fetch/env/Snapshot
- * aufrufbar. Wirft, wenn System One nicht erreichbar ist und kein brauchbarer Snapshot
- * vorliegt: lieber kein Deploy als eine Seite, auf der die Termine still fehlen.
+ * aufrufbar. Wirft, wenn System One nicht erreichbar ist oder keinen lesbaren Datensatz
+ * liefert: lieber kein Deploy als eine Seite, auf der die Termine still fehlen.
  */
 export async function loadShows(options: LoadOptions = {}): Promise<Shows> {
   const {
     fetchImpl = fetch,
     env = process.env,
     snapshot: snap = snapshot as SystemOneSnapshot,
-    now = new Date(),
     attempts = 3,
     retryDelayMs = 4000,
     log = console.log,
@@ -150,23 +155,24 @@ export async function loadShows(options: LoadOptions = {}): Promise<Shows> {
       if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
     }
   }
-  if (raw) {
-    const shows = buildShows(raw, 'live', warn);
-    log(`[systemone] live: ${shows.apiCount} Show(s) für Artist ${SYSTEMONE_ARTIST_ID}`);
-    return shows;
+  if (!raw) {
+    throw new Error(
+      `System One nicht erreichbar (${lastError}). Build abgebrochen, damit keine Termine still von ` +
+        `der Seite verschwinden – die bisher deployte Version bleibt live. Bewusst ohne API bauen: ` +
+        `SYSTEMONE_OFFLINE=1 (nimmt den committeten Snapshot).`
+    );
   }
-
-  const age = snapshotAgeDays(snap, now);
-  if ((snap.data?.length ?? 0) > 0 && age <= SNAPSHOT_MAX_AGE_DAYS) {
-    warn(`[systemone] API nicht erreichbar – nutze den Snapshot (${age.toFixed(1)} Tage alt)`);
-    return fromSnapshot('API nicht erreichbar');
+  const shows = buildShows(raw, 'live', warn);
+  // Leere Antwort = „keine sichtbaren Termine" (in Ordnung). Datensätze geliefert, aber keiner
+  // lesbar = Datenfehler (z. B. geändertes Format) – nicht als leere Terminliste veröffentlichen.
+  if (shows.apiCount === 0 && shows.skipped > 0) {
+    throw new Error(
+      `System One lieferte ${raw.length} Datensatz/Datensätze, aber keiner war lesbar ` +
+        `(${shows.skipped} übersprungen). Build abgebrochen – die bisher deployte Version bleibt live.`
+    );
   }
-  throw new Error(
-    `System One nicht erreichbar (${lastError}) und kein brauchbarer Snapshot (leer oder älter als ` +
-      `${SNAPSHOT_MAX_AGE_DAYS} Tage). Build abgebrochen, damit keine Termine still von der Seite ` +
-      `verschwinden – die bisher deployte Version bleibt live. Notfall: SYSTEMONE_OFFLINE=1 baut ` +
-      `bewusst mit dem Snapshot.`
-  );
+  log(`[systemone] live: ${shows.apiCount} Show(s) für Artist ${SYSTEMONE_ARTIST_ID}`);
+  return shows;
 }
 
 let cached: Promise<Shows> | undefined;

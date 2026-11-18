@@ -11,17 +11,12 @@ import {
   mergeDates,
   parsePerformanceTime,
   readPerformanceTime,
+  sameVenue,
   toBerlinIso,
 } from '../src/lib/systemone.ts';
 import type { SystemOneShow } from '../src/lib/systemone.ts';
-import {
-  SNAPSHOT_MAX_AGE_DAYS,
-  buildShows,
-  fetchSystemOne,
-  loadShows,
-  snapshotAgeDays,
-  systemOneQuery,
-} from '../src/data/shows.ts';
+import { buildShows, fetchSystemOne, loadShows, systemOneQuery } from '../src/data/shows.ts';
+import { machineDate } from '../src/lib/dates.ts';
 import { tourDates, soFreundeDates } from '../src/data/tour.ts';
 import type { TourDate } from '../src/data/tour.ts';
 
@@ -118,10 +113,11 @@ test('mergeDates: gleiche Show wird angereichert statt doppelt angezeigt', () =>
   assert.equal(halle.ticketUrl, 'https://neu/');
   assert.equal(halle.soldOut, true);
   assert.equal(halle.street, 'Am Steintor 10', 'Straße aus tour.ts bleibt, wenn System One keine hat');
-  assert.equal(merged[1].soldOut, true, 'soldOut aus tour.ts bleibt bestehen');
+  assert.equal(merged[1].soldOut, undefined, 'System One nennt den Status ausdrücklich (nicht ausverkauft) → gilt');
+  assert.equal(merged[1].ticketUrl, 'https://r/');
   assert.equal(merged[2].city, 'Kiel');
   for (const d of merged) {
-    for (const internal of ['systemOneId', 'production', 'list', 'timeKnown', 'venueKnown']) {
+    for (const internal of ['systemOneId', 'production', 'list', 'timeKnown', 'venueKnown', 'soldOutKnown']) {
       assert.ok(!(internal in d), `keine API-Interna im TourDate (${internal})`);
     }
     for (const v of Object.values(d)) assert.notEqual(v, undefined);
@@ -218,12 +214,13 @@ test('mergeDates: Doppelshow + EIN tour.ts-Eintrag → der Eintrag geht an die S
   assert.equal(merged[1].street, 'Alter Weg 5');
 });
 
-test('mergeDates: Doppelshow ohne passende Uhrzeit → ein Eintrag wird genau einmal zugeordnet, keine dritte Karte', () => {
-  const local: TourDate[] = [{ date: '2027-04-10T20:00:00+02:00', city: 'Hamburg', venue: 'Halle X', soldOut: true }];
+test('mergeDates: Doppelshow ohne exakt passende Uhrzeit → Eintrag geht an die zeitlich nahe Show, keine dritte Karte', () => {
+  const local: TourDate[] = [{ date: '2027-04-10T20:00:00+02:00', city: 'Hamburg', venue: 'Halle X', street: 'Alter Weg 5' }];
+  // 16:00 liegt 4 h daneben (eigene Show), 19:00 nur 1 h (Zeitkorrektur derselben Show in derselben Halle)
   const api = mapResponse([hamburg('16:00 Uhr', 'https://a/'), hamburg('19:00 Uhr', 'https://b/')]);
   const merged = mergeDates(local, api);
   assert.deepEqual(slots(merged), ['16:00 https://a/', '19:00 https://b/']);
-  assert.deepEqual(merged.map((d) => d.soldOut), [true, undefined], 'soldOut aus tour.ts landet nur auf EINER Show');
+  assert.deepEqual(merged.map((d) => d.street), [undefined, 'Alter Weg 5'], 'der tour.ts-Eintrag landet nur auf EINER Show');
 });
 
 test('mergeDates: zwei tour.ts-Einträge am selben Tag + zwei API-Shows → paarweise nach Uhrzeit', () => {
@@ -231,7 +228,10 @@ test('mergeDates: zwei tour.ts-Einträge am selben Tag + zwei API-Shows → paar
     { date: '2027-04-10T17:00:00+02:00', city: 'Hamburg', venue: 'Halle X', street: 'Früh 1' },
     { date: '2027-04-10T20:30:00+02:00', city: 'Hamburg', venue: 'Halle X', street: 'Spät 2', soldOut: true },
   ];
-  const api = mapResponse([hamburg('20:30 Uhr', 'https://b/'), hamburg('17:00 Uhr', 'https://a/')]);
+  const api = mapResponse([
+    hamburg('20:30 Uhr', 'https://b/', { tickets: { url: 'https://b/' } }), // ohne Ausverkauft-Angabe
+    hamburg('17:00 Uhr', 'https://a/'),
+  ]);
   const merged = mergeDates(local, api);
   assert.deepEqual(slots(merged), ['17:00 https://a/', '20:30 https://b/']);
   assert.deepEqual(merged.map((d) => d.street), ['Früh 1', 'Spät 2']);
@@ -293,81 +293,189 @@ test('mapResponse: ein kaputter Datensatz wird mit Warnung übersprungen, der Re
   assert.match(warnings[0], /Show 4711 übersprungen: .*TBA/);
 });
 
-// ---------------------------------------------------------------- Laden + Rückfall (Befund 2)
+// ---------------------------------------------------------------- Laden (Review-Befunde: kein stiller Verlust)
 const quiet = { retryDelayMs: 0, log: () => {}, warn: () => {} };
-const answering = (shows: SystemOneShow[]) =>
+const answering = (shows: SystemOneShow[], pageCount = 1) =>
   (async () =>
-    new Response(JSON.stringify({ data: shows, pagination: { page: 1, pageCount: 1, total: shows.length } }))) as unknown as typeof fetch;
+    new Response(JSON.stringify({ data: shows, pagination: { page: 1, pageCount, total: shows.length } }))) as unknown as typeof fetch;
 const failing = (calls: { n: number }) =>
   (async () => {
     calls.n++;
     throw new Error('getaddrinfo ENOTFOUND');
   }) as unknown as typeof fetch;
-const NOW = new Date('2026-11-27T10:00:00Z');
 const kiel = () => raw({ day: '2027-05-01', city: 'Kiel' });
+const unreadable = () => {
+  const bad = kiel();
+  bad.date = { value: 'TBA' };
+  return bad;
+};
 
 test('loadShows: Abruf klappt → live', async () => {
   const s = await loadShows({ fetchImpl: answering([kiel()]), env: {}, ...quiet });
   assert.equal(s.source, 'live');
   assert.equal(s.apiCount, 1);
+  assert.equal(s.skipped, 0);
 });
 
-test('loadShows: API-Ausfall + leerer oder alter Snapshot → Build bricht ab (kein stiller Verlust der Termine)', async () => {
+test('loadShows: API-Ausfall → Build bricht ab – auch mit frischem Snapshot (kein automatischer Rückfall)', async () => {
+  // Der Snapshot kann älter sein als der zuletzt veröffentlichte Stand: Montag Snapshot mit Show A,
+  // Dienstag live A + B veröffentlicht, Mittwoch API-Ausfall → der Snapshot würde B wieder entfernen.
   const calls = { n: 0 };
+  const fresh = { fetchedAt: new Date().toISOString(), data: [kiel()] };
   await assert.rejects(
-    loadShows({ fetchImpl: failing(calls), env: {}, now: NOW, snapshot: { fetchedAt: '2026-11-27T09:00:00Z', data: [] }, ...quiet }),
-    /System One nicht erreichbar \(getaddrinfo ENOTFOUND\).*Build abgebrochen/s
+    loadShows({ fetchImpl: failing(calls), env: {}, snapshot: fresh, ...quiet }),
+    /System One nicht erreichbar \(getaddrinfo ENOTFOUND\)\. Build abgebrochen/
   );
   assert.equal(calls.n, 3, 'drei Versuche vor dem Abbruch');
-  await assert.rejects(
-    loadShows({ fetchImpl: failing({ n: 0 }), env: {}, now: NOW, snapshot: { fetchedAt: '2026-11-17T09:39:45Z', data: [kiel()] }, ...quiet }),
-    /kein brauchbarer Snapshot/
-  );
-  await assert.rejects(
-    loadShows({ fetchImpl: failing({ n: 0 }), env: {}, now: NOW, snapshot: { data: [kiel()] }, ...quiet }),
-    /kein brauchbarer Snapshot/,
-    'Snapshot ohne fetchedAt gilt als zu alt'
-  );
 });
 
-test('loadShows: API-Ausfall + frischer Snapshot mit Terminen → Snapshot', async () => {
-  const s = await loadShows({
-    fetchImpl: failing({ n: 0 }),
-    env: {},
-    now: NOW,
-    snapshot: { fetchedAt: '2026-11-26T08:00:00Z', data: [kiel()] },
-    ...quiet,
-  });
-  assert.equal(s.source, 'snapshot');
-  assert.equal(s.apiCount, 1);
-});
-
-test('loadShows: SYSTEMONE_OFFLINE=1 baut bewusst mit dem Snapshot – ohne Abruf, auch wenn er alt ist', async () => {
+test('loadShows: SYSTEMONE_OFFLINE=1 baut bewusst mit dem Snapshot – ohne Abruf', async () => {
   const calls = { n: 0 };
   const s = await loadShows({
     fetchImpl: failing(calls),
     env: { SYSTEMONE_OFFLINE: '1' },
-    now: NOW,
     snapshot: { fetchedAt: '2026-01-01T00:00:00Z', data: [kiel()] },
     ...quiet,
   });
   assert.equal(s.source, 'snapshot');
+  assert.equal(s.apiCount, 1);
   assert.equal(calls.n, 0);
 });
 
-test('loadShows: kaputter Datensatz in der Live-Antwort verwirft nicht die ganze Antwort', async () => {
+test('loadShows: einzelner unlesbarer Datensatz wird übersprungen, der Rest bleibt live', async () => {
   const warnings: string[] = [];
-  const bad = kiel();
-  bad.date = { value: 'TBA' };
-  const s = await loadShows({ fetchImpl: answering([kiel(), bad]), env: {}, ...quiet, warn: (m) => warnings.push(m) });
-  assert.equal(s.source, 'live', 'kein Rückfall auf den Snapshot wegen eines einzelnen Datensatzes');
+  const s = await loadShows({ fetchImpl: answering([kiel(), unreadable()]), env: {}, ...quiet, warn: (m) => warnings.push(m) });
+  assert.equal(s.source, 'live');
   assert.equal(s.apiCount, 1);
-  assert.equal(warnings.length, 1);
+  assert.equal(s.skipped, 1);
   assert.match(warnings[0], /übersprungen/);
 });
 
-test('snapshotAgeDays: Alter in Tagen, ohne fetchedAt unendlich', () => {
-  assert.equal(snapshotAgeDays({ fetchedAt: '2026-11-26T10:00:00Z' }, NOW), 1);
-  assert.equal(snapshotAgeDays({}, NOW), Infinity);
-  assert.ok(SNAPSHOT_MAX_AGE_DAYS >= 1);
+test('loadShows: Antwort ohne einen lesbaren Datensatz → Abbruch; ausdrücklich leere Antwort → live mit 0 Shows', async () => {
+  await assert.rejects(
+    loadShows({ fetchImpl: answering([unreadable()]), env: {}, ...quiet }),
+    /lieferte 1 Datensatz\/Datensätze, aber keiner war lesbar/
+  );
+  const empty = await loadShows({ fetchImpl: answering([]), env: {}, ...quiet });
+  assert.equal(empty.source, 'live');
+  assert.equal(empty.apiCount, 0);
+});
+
+test('fetchSystemOne: mehr Seiten als das Limit → Fehler statt Teilliste', async () => {
+  await assert.rejects(fetchSystemOne(answering([kiel()], 11)), /11 Seiten gemeldet/);
+  assert.equal((await fetchSystemOne(answering([kiel()], 1))).length, 1);
+});
+
+test('mapResponse: Show ohne Stadt wird mit Warnung übersprungen, fremde Künstler still', () => {
+  const warnings: string[] = [];
+  const shows = mapResponse(
+    [raw({ day: '2027-05-01', city: '', id: 12 }), raw({ day: '2027-05-02', city: 'Kiel', artist: { id: 1709959 } }), kiel()],
+    ROGER,
+    (m) => warnings.push(m)
+  );
+  assert.equal(shows.length, 1);
+  assert.deepEqual(warnings, ['[systemone] Show 12 übersprungen: Datum oder Stadt fehlt']);
+});
+
+// ---------------------------------------------------------------- eindeutige Zuordnung (Review 18.11.2026, zweiter Prüfer)
+// Vorher reichte „gleicher Tag + gleiche Stadt" zum Zusammenführen: eine eigenständige Show
+// überschrieb dann einen tour.ts-Termin samt Ticketlink.
+const card = (d: TourDate) => `${d.date.slice(11, 16)} ${d.venue} ${d.ticketUrl ?? '-'}`;
+const saalA = (): TourDate[] => [
+  { date: '2027-04-10T20:00:00+02:00', city: 'Hamburg', venue: 'Saal A', street: 'A-Straße 1', postalCode: '20095', ticketUrl: 'https://saal-a/' },
+];
+
+test('mergeDates: andere Spielstätte + andere Uhrzeit → beide Termine bleiben, tour.ts-Eintrag unverändert, Hinweis im Log', () => {
+  const api = mapResponse([hamburg('20:30 Uhr', 'https://saal-b/', { venue: { name: 'Saal B', city: 'Hamburg' } })]);
+  const hints: string[] = [];
+  const local = saalA();
+  const merged = mergeDates(local, api, (m) => hints.push(m));
+  assert.deepEqual(merged.map(card), ['20:00 Saal A https://saal-a/', '20:30 Saal B https://saal-b/']);
+  assert.deepEqual(merged[0], local[0], 'der tour.ts-Termin bleibt Feld für Feld erhalten');
+  assert.equal(hints.length, 1);
+  assert.match(hints[0], /2027-04-10 Hamburg: „Saal B" 20:30 \(System One\) und „Saal A" 20:00 \(tour\.ts\) nicht zusammengeführt/);
+});
+
+test('mergeDates: gleiche Beginnzeit, anderer Venue-Name (Verlegung) → EINE Karte, alte Adresse wird nicht übernommen', () => {
+  const moved = mergeDates(saalA(), mapResponse([hamburg('20:00 Uhr', 'https://neu/', { venue: { name: 'Große Freiheit 36', city: 'Hamburg' } })]));
+  assert.deepEqual(moved.map(card), ['20:00 Große Freiheit 36 https://neu/']);
+  assert.equal(moved[0].street, undefined, 'Straße von Saal A gehört nicht zur neuen Spielstätte');
+  assert.equal(moved[0].postalCode, undefined);
+
+  const withAddress = mergeDates(saalA(), mapResponse([
+    hamburg('20:00 Uhr', 'https://neu/', { venue: { name: 'Große Freiheit 36', street: 'Große Freiheit 36', postalCode: '22767', city: 'Hamburg' } }),
+  ]));
+  assert.equal(withAddress[0].street, 'Große Freiheit 36');
+  assert.equal(withAddress[0].postalCode, '22767');
+});
+
+test('mergeDates: gleiche Spielstätte – kleine Zeitabweichung ist eine Korrektur, großer Abstand eine eigene Show', () => {
+  const local = (): TourDate[] => [{ date: '2027-04-10T20:00:00+02:00', city: 'Hamburg', venue: 'Indra Musikclub', street: 'Große Freiheit 64' }];
+  const indra = (time: string) => hamburg(time, 'https://indra/', { venue: { name: 'Indra', city: 'Hamburg' } });
+
+  const corrected = mergeDates(local(), mapResponse([indra('19:30 Uhr')]));
+  assert.deepEqual(corrected.map(card), ['19:30 Indra https://indra/']);
+  assert.equal(corrected[0].street, 'Große Freiheit 64', 'dieselbe Spielstätte → Adresse aus tour.ts bleibt');
+
+  const hints: string[] = [];
+  const extra = mergeDates(local(), mapResponse([indra('16:00 Uhr')]), (m) => hints.push(m));
+  assert.deepEqual(extra.map(card), ['16:00 Indra https://indra/', '20:00 Indra Musikclub -']);
+  assert.equal(hints.length, 1);
+});
+
+test('mergeDates: System One ohne Uhrzeit, aber mit anderer Spielstätte → beide bleiben', () => {
+  const api = mapResponse([raw({ day: '2027-04-10', city: 'Hamburg', performanceTime: null, venue: { name: 'Saal B', city: 'Hamburg' }, tickets: { url: 'https://saal-b/', soldOut: false } })]);
+  const merged = mergeDates(saalA(), api);
+  assert.deepEqual(merged.map((d) => d.venue).sort(), ['Saal A', 'Saal B']);
+});
+
+test('sameVenue: gleiche Wörter oder Namensanfang, Stadtname zählt nicht mit', () => {
+  const v = (venue: string, city = 'Hamburg'): TourDate => ({ date: '2027-04-10T20:00:00+02:00', city, venue });
+  assert.ok(sameVenue(v('Indra Musikclub'), v('Indra')));
+  assert.ok(sameVenue(v('FZW / Freizeitzentrum West', 'Dortmund'), v('FZW', 'Dortmund')));
+  assert.ok(sameVenue(v('Stadthalle Rostock', 'Rostock'), v('Stadthalle', 'Rostock')));
+  assert.ok(sameVenue(v('Steintor-Varieté', 'Halle (Saale)'), v('Steintor Variete', 'Halle')));
+  assert.ok(!sameVenue(v('Saal A'), v('Saal B')));
+  assert.ok(!sameVenue(v('Reeperbahn Comedy Club'), v('St. Pauli Comedy Club')));
+  assert.ok(!sameVenue(v('Comedy Club X'), v('Comedy Club Y')));
+});
+
+// ---------------------------------------------------------------- Ausverkauft-Status (maßgeblich: System One)
+test('mergeDates: ausdrücklicher Ausverkauft-Status aus System One gilt, ohne Angabe bleibt tour.ts', () => {
+  const local = (): TourDate[] => [{ date: '2027-04-10T20:00:00+02:00', city: 'Hamburg', venue: 'Halle X', soldOut: true }];
+  const merged = (tickets: SystemOneShow['tickets']) => mergeDates(local(), mapResponse([hamburg('20:00 Uhr', 'https://x/', { tickets })]))[0];
+
+  const released = merged({ url: 'https://karten/', soldOut: false });
+  assert.equal(released.soldOut, undefined, 'wieder Karten da → kein „Ausverkauft" mehr');
+  assert.equal(released.ticketUrl, 'https://karten/');
+  assert.equal(merged({ url: 'https://karten/' }).soldOut, true, 'keine Angabe → Stand aus tour.ts bleibt');
+  assert.equal(merged(null).soldOut, true);
+  assert.equal(merged({ url: null, soldOut: true }).soldOut, true);
+
+  const fresh = mergeDates(
+    [{ date: '2027-04-10T20:00:00+02:00', city: 'Hamburg', venue: 'Halle X' }],
+    mapResponse([hamburg('20:00 Uhr', 'https://x/', { tickets: { url: 'https://x/', soldOut: true } })])
+  )[0];
+  assert.equal(fresh.soldOut, true);
+});
+
+// ---------------------------------------------------------------- unbekannte Beginnzeit
+test('Beginnzeit unbekannt: timeUnknown im Seitenmodell, machineDate nennt dann nur das Datum', () => {
+  const noTime = raw({ day: '2027-05-01', city: 'Kiel', performanceTime: null });
+  const [alone] = mergeDates([], mapResponse([noTime]));
+  assert.equal(alone.timeUnknown, true);
+  assert.equal(alone.date, '2027-05-01T20:00:00+02:00', 'intern bleibt der Platzhalter (Sortierung, Vorbei-Logik)');
+  assert.equal(machineDate(alone), '2027-05-01');
+
+  const [timed] = mergeDates([], mapResponse([kiel()]));
+  assert.equal(timed.timeUnknown, undefined);
+  assert.equal(machineDate(timed), '2027-05-01T20:00:00+02:00');
+
+  // Mit tour.ts-Eintrag: dessen Uhrzeit bleibt und gilt als bekannt
+  const [known] = mergeDates(
+    [{ date: '2027-05-01T19:30:00+02:00', city: 'Kiel', venue: 'Halle X' }],
+    mapResponse([noTime])
+  );
+  assert.equal(known.timeUnknown, undefined);
+  assert.equal(machineDate(known), '2027-05-01T19:30:00+02:00');
 });
