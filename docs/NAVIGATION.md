@@ -30,13 +30,16 @@ Klaviyo auf der Seite wirklich tut, wie getestet und deployt wird – und sie en
   führen zu Eventim, Reservix, Ticketmaster, bergisch-live, saarlouis.de.
 - **Live:** Coolify-App `roger-g.de` (uuid `zk9l0fgnk0e9f5yqpyzqaa59`, Projekt „Roger G", Quelle GitHub-App
   `Konradattelematika/roger-g.de` Branch `main`, Buildpack Dockerfile, Port 80, Domains `roger-g.de` + `www.roger-g.de`,
-  Healthcheck aus, keine ENV-Variablen). **Kein automatischer Deploy** – alle 9 Deploys der Historie waren manuell (der Push vom 19.10. löste ebenfalls nichts aus).
-  Nach einem Push den API-Trigger rufen (§9). Push/Deploy nur mit Konrads OK.
+  Healthcheck aus, keine ENV-Variablen). **Ein Push deployt nicht sofort, aber seit 17.11.2026 automatisch
+  spätestens am Folgetag:** der Skript-Loop `roger-g-rebuild` (stündlich, `docs/SYSTEMONE.md`) löst einen Deploy aus, sobald sich
+  die System-One-Termine ändern, und einmal pro Tag. Vorher waren alle Deploys manuell; der API-Trigger (§9) bleibt der Weg
+  für „sofort". Push/Deploy nur mit Konrads OK.
 - **Testen:** `npm test` (node:test, ohne Netz; seit 17.11.2026 auch `tests/systemone.test.mts`) · `npm run build`
   (≈1,5 s, braucht Netz für System One – sonst `SYSTEMONE_OFFLINE=1`) · Screenshots
   390/1440 px mit `scripts/shot.mjs` / `scripts/scroll-shot.mjs` (Pflicht laut `CLAUDE.md` bei visuellen Änderungen).
-- **Kein Loop, kein Cron:** Nichts läuft automatisch gegen dieses Repo (`grep -rl roger-g.de ~/claude-cloud/loops/`
-  trifft nur den Innovations-Scout-Bericht). Uncommittete Änderungen hier sind folgenlos, bis jemand baut und deployt.
+- **Ein Loop (seit 17.11.2026):** `~/claude-cloud/loops/roger-g-rebuild/` prüft stündlich System One und deployt bei
+  Änderungen sowie einmal täglich aus GitHub `main` – **was auf `main` gepusht ist, geht also ohne weiteres Zutun live.**
+  Uncommittete oder nur lokal committete Änderungen hier bleiben folgenlos, bis jemand pusht.
 
 ## 1. Lagekarte
 
@@ -314,7 +317,7 @@ Typecheck-Script (`npx astro check` wäre möglich, ungetestet); kein Linter.
    Fonts über das Formular, Klaviyo als Empfänger nicht genannt – seit 08.08.2026 live. Rechtstext + Consent-Frage → Konrad/Roger.
 3. **Impressum in sich widersprüchlich** („Roger G" + „Geschäftsführer", Steuernummer öffentlich, drei verschiedene
    Anschriften über Rogers Auftritte) – Faktenlage §6 bzw. g-laber §6; Entscheidung Konrad.
-4. **Kein Auto-Deploy** trotz GitHub-App-Quelle; `DEPLOY.md` Schritt 4 behauptet „jeder Push deployt". Nach Push immer
+4. **Kein Auto-Deploy durch Pushes** trotz GitHub-App-Quelle (seit 17.11.2026 deployt aber der Loop `roger-g-rebuild` täglich, §0); `DEPLOY.md` Schritt 4 behauptet „jeder Push deployt". Nach Push immer
    den API-Trigger rufen (§9) – oder im Coolify-UI Auto-Deploy prüfen/aktivieren.
 5. **nginx-Default**: 301 auf `http://` für Pfade ohne Slash (Footer-Links seit 27.09. mit Slash; externe Links auf
    `/impressum` bleiben betroffen), kein gzip, keine Cache-Header, Standard-404. Eigene `nginx.conf` nach g-laber-Muster
