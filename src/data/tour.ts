@@ -261,3 +261,12 @@ export const soFreundeDates: TourDate[] = [
     soldOut: true,
   },
 ];
+
+// ── Abgeblasen (neue Tour, Vorverkaufsstart Ende November 2026) ────
+// Termine kommen aus System One (Programmname enthält „Abgeblasen"). Die Liste
+// hier bleibt normalerweise leer – nur für Termine, die System One nicht liefert.
+// Der Abschnitt erscheint erst, wenn es mindestens einen Termin gibt (index.astro).
+export const abgeblasenName = 'Roger G – Abgeblasen';
+export const abgeblasenDescription =
+  'Stand Up Comedy: „Abgeblasen" – die neue Tour von Roger G.';
+export const abgeblasenDates: TourDate[] = [];

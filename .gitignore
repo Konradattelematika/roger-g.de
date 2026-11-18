@@ -13,6 +13,9 @@ lighthouse.json
 # die README mit Analyse & Arbeitsauftrag bleibt versioniert
 design-reference/*.png
 design-reference/*.pdf
+# vorläufige Grafiken des Managements + Wegwerf-Prototyp, nur auf dem Server
+design-reference/abgeblasen/*.jpeg
+design-reference/abgeblasen/prototyp/
 
 # dependencies
 node_modules/

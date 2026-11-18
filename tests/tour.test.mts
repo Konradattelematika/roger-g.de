@@ -6,6 +6,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { berlinDay, berlinOffset, parseIso } from '../src/lib/dates.ts';
 import {
+  abgeblasenDates,
+  abgeblasenDescription,
+  abgeblasenName,
   soFreundeDates,
   soFreundeDescription,
   soFreundeName,
@@ -18,12 +21,14 @@ import type { TourDate } from '../src/data/tour.ts';
 const lists: Array<[string, TourDate[]]> = [
   ['tourDates', tourDates],
   ['soFreundeDates', soFreundeDates],
+  ['abgeblasenDates', abgeblasenDates],
 ];
 
 // ---------------------------------------------------------------- Form
 test('Form: beide Terminlisten sind nicht leer, Pflichtfelder sind nicht-leere Strings', () => {
   for (const [name, dates] of lists) {
-    assert.ok(dates.length > 0, `${name}: Liste ist leer`);
+    // abgeblasenDates bleibt normalerweise leer (Termine kommen aus System One)
+    if (name !== 'abgeblasenDates') assert.ok(dates.length > 0, `${name}: Liste ist leer`);
     for (const d of dates) {
       for (const field of ['date', 'city', 'venue'] as const) {
         const value = d[field];
@@ -131,11 +136,14 @@ test('Texte: Namen und Beschreibungen sind nicht-leere Strings, Namen beginnen m
     ['tourDescription', tourDescription],
     ['soFreundeName', soFreundeName],
     ['soFreundeDescription', soFreundeDescription],
+    ['abgeblasenName', abgeblasenName],
+    ['abgeblasenDescription', abgeblasenDescription],
   ];
   for (const [label, value] of texts) {
     assert.equal(typeof value, 'string', `${label} ist kein String`);
     assert.ok(value.trim().length > 0, `${label} ist leer`);
   }
   assert.ok(tourName.startsWith('Roger G'), `tourName "${tourName}" beginnt nicht mit "Roger G"`);
+  assert.ok(abgeblasenName.startsWith('Roger G'), `abgeblasenName "${abgeblasenName}" beginnt nicht mit "Roger G"`);
   assert.ok(soFreundeName.startsWith('Roger G'), `soFreundeName "${soFreundeName}" beginnt nicht mit "Roger G"`);
 });

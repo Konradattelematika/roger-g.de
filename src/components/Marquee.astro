@@ -9,9 +9,10 @@ interface Props {
   rotate?: string;
 }
 const { rotate = '-1.2deg' } = Astro.props;
-const { tryout: tourDates } = await getShows();
+const { tryout: tourDates, abgeblasen } = await getShows();
 
 const items = [
+  ...(abgeblasen.length > 0 ? ['Neue Tour: Abgeblasen'] : []),
   'Try Out Tour 26',
   'Neues Material',
   'Null Sicherheitsnetz',

@@ -36,3 +36,15 @@ Dateien: `1.png` (Hauptplakat ohne Datum), `2.png`–`6.png` (Stadt-Varianten),
    (Pink/Bubble statt Rot/Stencil) – oder ersatzlos raus, wenn er nicht passt.
 6. Nach der Anpassung: Screenshot-Vergleich Seite vs. Plakat (390 px) –
    die Seite muss sich wie das Plakat "anfühlen", nicht es kopieren.
+
+## Abgeblasen (vorläufige Ankündigungsgrafiken, 17.11.2026)
+
+Quelle: Dropbox-Ordner „Backup Grafiken“ des Managements; Dateien `abgeblasen/00.jpeg`–`14.jpeg` (Nummernpräfix der
+Originalnamen). Die JPEGs und der Prototyp liegen nur auf dem Server (`.gitignore`).
+
+- Motiv: Roger auf goldenem Plastikstuhl mit Regenbogen-Windrad vor Plattenbau.
+- „ROGER G“ himmelblau #2da3e8 mit dicker weißer Kontur.
+- „ABGEBLASEN“ im Regenbogenverlauf #f9ad00 → #ee8a10 → #e24a2c → #b84a66 → #6a78c6 → #398ffa, ebenfalls weiße Kontur.
+- Schrift: breite Black-Grotesk, vermutlich kommerziell – Ersatz „Anybody“ (wdth 124 / wght 900).
+- Körnung/Staub über dem Ganzen (Soft-Light-Noise im Abschnitt).
+- Verwendet: Motiv 11 (`scripts/abg-motiv.mjs` → `public/img/abg-motiv-*`). Prototyp: `abgeblasen/prototyp/`.

@@ -1,6 +1,7 @@
 // Animations-Setup: Lenis (Smooth Scroll) + GSAP.
 // Hero-Intro mit SplitText-Buchstaben-Pop, Parallax, Float-/Wiggle-Loops,
-// orchestrierte Termin-Sequenz, generische Scroll-Reveals.
+// orchestrierte Termin-Sequenz, Windrad (Abgeblasen-Kopf: dreht nur im Viewport,
+// Scrollen „pustet“ es an), generische Scroll-Reveals.
 // Respektiert prefers-reduced-motion vollständig (dann: alles statisch).
 
 import gsap from 'gsap';
@@ -167,9 +168,20 @@ if (!prefersReducedMotion) {
       defaults: { ease: 'power2.out' },
       scrollTrigger: { trigger: section, start: 'top 75%' },
     });
+    if (q('.abg-head').length) {
+      // Abgeblasen-Kopf: Foto fällt wie ein Sticker rein, Windrad und Schriftzug poppen nach
+      datesTl
+        .from(q('.abg-photo'), { y: 46, rotation: -7, autoAlpha: 0, duration: 0.6, ease: 'back.out(1.4)' })
+        .from(q('.abg-pinwheel'), { scale: 0, rotation: -120, transformOrigin: '50% 32%', duration: 0.5, ease: 'back.out(2)' }, '-=0.25')
+        .from(q('.abg-kicker'), { scale: 0, autoAlpha: 0, duration: 0.35, ease: 'back.out(2.2)' }, '<0.1')
+        .from(q('.abg-wordmark'), { scale: 0.7, y: 24, autoAlpha: 0, duration: 0.5, ease: 'back.out(1.8)' }, '-=0.3')
+        .from(q('.abg-intro'), { y: 18, autoAlpha: 0, duration: 0.4 }, '-=0.2');
+    } else {
+      datesTl
+        .from(q('.section-title'), { y: 40, autoAlpha: 0, duration: 0.5 })
+        .from(q('.annotation'), { x: -18, autoAlpha: 0, duration: 0.4 }, '-=0.25');
+    }
     datesTl
-      .from(q('.section-title'), { y: 40, autoAlpha: 0, duration: 0.5 })
-      .from(q('.annotation'), { x: -18, autoAlpha: 0, duration: 0.4 }, '-=0.25')
       .from(
         q('.date-row'),
         { y: 36, autoAlpha: 0, duration: 0.55, stagger: 0.09 },
@@ -202,6 +214,22 @@ if (!prefersReducedMotion) {
         },
       });
     }
+  });
+
+  // ── Windrad (Abgeblasen): dreht nur im Viewport, Scrollen „pustet“ es an ──
+  gsap.utils.toArray<SVGGElement>('.abg-pinwheel-blades').forEach((blades) => {
+    const spin = gsap.to(blades, { rotation: 360, svgOrigin: '0 0', duration: 6, ease: 'none', repeat: -1, paused: true });
+    ScrollTrigger.create({
+      trigger: blades.closest('section'),
+      start: 'top bottom',
+      end: 'bottom top',
+      onToggle: (self) => (self.isActive ? spin.play() : spin.pause()),
+      onUpdate: (self) => {
+        const boost = gsap.utils.clamp(1, 9, 1 + Math.abs(self.getVelocity()) / 250);
+        gsap.to(spin, { timeScale: boost, duration: 0.2, overwrite: true });
+        gsap.to(spin, { timeScale: 1, duration: 1.8, delay: 0.25, ease: 'power2.out' });
+      },
+    });
   });
 
   // ── Generische Scroll-Reveals ──────────────────────────────────

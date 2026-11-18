@@ -1,0 +1,154 @@
+---
+// Kopf des Abgeblasen-Abschnitts (Slot "head" von TourDates.astro, theme="abg"):
+// schief aufgeklebtes Foto mit Kicker-Sticker und Windrad, darunter der Schriftzug.
+// Die Farbvariablen --abg-* kommen vom Sektions-Element (.dates-section--abg).
+// Schriftzug = Pfade aus der freien Schrift „Anybody" (SIL OFL, variabel,
+// wdth 124 / wght 900, mit fontkit in Pfade umgewandelt) als Annäherung an die
+// Plakatschrift – wird durch den offiziellen Schriftzug ersetzt, sobald das
+// Management ihn liefert. Windrad = eigene Vektorzeichnung nach dem Requisit der
+// Tour; es dreht per GSAP (animations.ts, „.abg-pinwheel-blades"), nicht per CSS.
+// Foto vorläufig (scripts/abg-motiv.mjs, Quelle: Ankündigungsgrafik des Managements).
+interface Props {
+  /** id der Überschrift (aria-labelledby der Sektion) */
+  headingId: string;
+}
+const { headingId } = Astro.props;
+---
+
+<div class="abg-head">
+  <div class="abg-photo">
+    <picture>
+      <source type="image/avif" srcset="/img/abg-motiv-480.avif 480w, /img/abg-motiv-768.avif 768w, /img/abg-motiv-900.avif 900w" sizes="(min-width: 44rem) 40rem, calc(100vw - 2.5rem)" />
+      <source type="image/webp" srcset="/img/abg-motiv-480.webp 480w, /img/abg-motiv-768.webp 768w, /img/abg-motiv-900.webp 900w" sizes="(min-width: 44rem) 40rem, calc(100vw - 2.5rem)" />
+      <img src="/img/abg-motiv-768.webp" width="900" height="600" loading="lazy" decoding="async"
+        alt="Roger G sitzt lachend auf einem Plastikstuhl vor einem Plattenbau, neben ihm steckt ein buntes Windrad im Rasen" />
+    </picture>
+    <p class="abg-kicker">Die neue Tour</p>
+    <svg class="abg-pinwheel" viewBox="-76 -76 152 236" aria-hidden="true" focusable="false">
+        <rect x="-3.2" y="0" width="6.4" height="156" rx="3.2" fill="#efe2c4"/>
+        <rect x="-3.2" y="0" width="2.4" height="156" rx="1.2" fill="#fff" opacity=".35"/>
+        <g class="abg-pinwheel-blades">
+          <g fill="#e8343f"><path d="M0 0L-2-62C20-62 38-44 34-22C31-8 14-1 0 0Z"/><path fill="#fff" opacity=".3" d="M0 0L-2-62C10-46 12-22 0 0Z"/></g>
+          <g fill="#f47b20" transform="rotate(45)"><path d="M0 0L-2-62C20-62 38-44 34-22C31-8 14-1 0 0Z"/><path fill="#fff" opacity=".3" d="M0 0L-2-62C10-46 12-22 0 0Z"/></g>
+          <g fill="#f9c21a" transform="rotate(90)"><path d="M0 0L-2-62C20-62 38-44 34-22C31-8 14-1 0 0Z"/><path fill="#fff" opacity=".3" d="M0 0L-2-62C10-46 12-22 0 0Z"/></g>
+          <g fill="#46b450" transform="rotate(135)"><path d="M0 0L-2-62C20-62 38-44 34-22C31-8 14-1 0 0Z"/><path fill="#fff" opacity=".3" d="M0 0L-2-62C10-46 12-22 0 0Z"/></g>
+          <g fill="#6ec6e6" transform="rotate(180)"><path d="M0 0L-2-62C20-62 38-44 34-22C31-8 14-1 0 0Z"/><path fill="#fff" opacity=".3" d="M0 0L-2-62C10-46 12-22 0 0Z"/></g>
+          <g fill="#2d8fe0" transform="rotate(225)"><path d="M0 0L-2-62C20-62 38-44 34-22C31-8 14-1 0 0Z"/><path fill="#fff" opacity=".3" d="M0 0L-2-62C10-46 12-22 0 0Z"/></g>
+          <g fill="#8e5bd0" transform="rotate(270)"><path d="M0 0L-2-62C20-62 38-44 34-22C31-8 14-1 0 0Z"/><path fill="#fff" opacity=".3" d="M0 0L-2-62C10-46 12-22 0 0Z"/></g>
+          <g fill="#ec4a9c" transform="rotate(315)"><path d="M0 0L-2-62C20-62 38-44 34-22C31-8 14-1 0 0Z"/><path fill="#fff" opacity=".3" d="M0 0L-2-62C10-46 12-22 0 0Z"/></g>
+        </g>
+        <circle r="8" fill="#f6efdf" stroke="#d8c8a2" stroke-width="1.6"/>
+        <circle cx="-2.2" cy="-2.4" r="2.6" fill="#fff" opacity=".8"/>
+      </svg>
+  </div>
+  <h2 class="abg-wordmark" id={headingId}><span class="sr-only">Abgeblasen</span><svg class="abg-wordmark-svg" viewBox="-129 -1569 17950 1782" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="abg-rainbow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f9ad00"/><stop offset="0.24" stop-color="#ee8a10"/>
+      <stop offset="0.46" stop-color="#e24a2c"/><stop offset="0.62" stop-color="#b84a66"/>
+      <stop offset="0.78" stop-color="#6a78c6"/><stop offset="1" stop-color="#398ffa"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#abg-rainbow)" stroke="#f7f6f2" stroke-width="330" stroke-linejoin="round" paint-order="stroke" d="M76 0L603 0L703 -277L1268 -277L1365 0L1893 0L1329 -1352L640 -1352ZM811 -596L985 -1079L988 -1079L1161 -596ZM2056.6 0L3127.6 0Q3455.6 0 3549.6 -106Q3643.6 -212 3643.6 -380Q3643.6 -535 3541.6 -616.5Q3439.6 -698 3310.6 -705Q3441.6 -710 3516.6 -797.5Q3591.6 -885 3591.6 -1018Q3591.6 -1156 3493.1 -1253Q3394.6 -1350 3068.6 -1350L2056.6 -1350ZM2566.6 -334L2566.6 -555L3015.6 -555Q3098.6 -555 3117.1 -529Q3135.6 -503 3135.6 -444Q3135.6 -383 3117.1 -358.5Q3098.6 -334 3015.6 -334ZM2566.6 -838L2566.6 -1017L2972.6 -1017Q3037.6 -1017 3057.6 -996.5Q3077.6 -976 3077.6 -933Q3077.6 -888 3058.1 -863Q3038.6 -838 2970.6 -838ZM4645.6 8Q5012.6 7 5139.6 -160L5192.6 0L5489.6 0L5489.6 -757L4709.6 -757L4709.6 -475L4962.6 -475L4960.6 -471Q4943.6 -392 4883.1 -358Q4822.6 -324 4680.6 -324Q4527.6 -324 4435.1 -400Q4342.6 -476 4342.6 -672Q4342.6 -896 4435.1 -963.5Q4527.6 -1031 4677.6 -1031Q4821.6 -1031 4892.6 -997Q4963.6 -963 4981.6 -865L5489.6 -865Q5475.6 -1072 5269.1 -1218Q5062.6 -1364 4675.6 -1364Q4246.6 -1364 4037.6 -1187.5Q3828.6 -1011 3828.6 -680Q3828.6 -354 4030.1 -173Q4231.6 8 4645.6 8ZM5730.6 0L7081.6 0L7081.6 -334L6239.6 -334L6239.6 -521L7006.6 -521L7006.6 -835L6239.6 -835L6239.6 -1016L7081.6 -1016L7081.6 -1350L5730.6 -1350ZM7298.6 0L8369.6 0Q8697.6 0 8791.6 -106Q8885.6 -212 8885.6 -380Q8885.6 -535 8783.6 -616.5Q8681.6 -698 8552.6 -705Q8683.6 -710 8758.6 -797.5Q8833.6 -885 8833.6 -1018Q8833.6 -1156 8735.1 -1253Q8636.6 -1350 8310.6 -1350L7298.6 -1350ZM7808.6 -334L7808.6 -555L8257.6 -555Q8340.6 -555 8359.1 -529Q8377.6 -503 8377.6 -444Q8377.6 -383 8359.1 -358.5Q8340.6 -334 8257.6 -334ZM7808.6 -838L7808.6 -1017L8214.6 -1017Q8279.6 -1017 8299.6 -996.5Q8319.6 -976 8319.6 -933Q8319.6 -888 8300.1 -863Q8280.6 -838 8212.6 -838ZM9114.6 0L10316.6 0L10316.6 -333L9624.6 -333L9624.6 -1350L9114.6 -1350ZM10478.6 0L11005.6 0L11105.6 -277L11670.6 -277L11767.6 0L12295.6 0L11731.6 -1352L11042.6 -1352ZM11213.6 -596L11387.6 -1079L11390.6 -1079L11563.6 -596ZM13184.2 7Q13598.2 7 13795.2 -116Q13992.2 -239 13992.2 -463Q13992.2 -641 13854.2 -715Q13716.2 -789 13331.2 -834Q13127.2 -855 12982.2 -872Q12837.2 -889 12837.2 -943Q12837.2 -987 12933.2 -1009.5Q13029.2 -1032 13163.2 -1032Q13281.2 -1032 13381.7 -1001.5Q13482.2 -971 13482.2 -880L13991.2 -880Q13991.2 -1101 13786.2 -1232.5Q13581.2 -1364 13170.2 -1364Q12757.2 -1364 12554.7 -1242Q12352.2 -1120 12352.2 -904Q12352.2 -719 12495.7 -638Q12639.2 -557 13000.2 -515Q13214.2 -494 13355.7 -478Q13497.2 -462 13497.2 -408Q13497.2 -362 13401.7 -343.5Q13306.2 -325 13178.2 -325Q13052.2 -325 12955.2 -355.5Q12858.2 -386 12858.2 -480L12350.2 -480Q12350.2 -249 12550.7 -121Q12751.2 7 13184.2 7ZM14190.2 0L15541.2 0L15541.2 -334L14699.2 -334L14699.2 -521L15466.2 -521L15466.2 -835L14699.2 -835L14699.2 -1016L15541.2 -1016L15541.2 -1350L14190.2 -1350ZM15758.2 0L16266.2 0L16266.2 -997L16271.2 -997L16816.2 0L17616.2 0L17616.2 -1350L17107.2 -1350L17105.2 -383L17103.2 -383L16573.2 -1350L15758.2 -1350Z"/>
+</svg></h2>
+  <!-- Zwei Blöcke = kontrollierter Umbruch: Frage/Antwort oben, der Satz darunter -->
+  <p class="abg-intro">
+    <span>Abgeblasen? <em>Von wegen.</em></span>
+    <span>Hier sind alle Termine der neuen Tour.</span>
+  </p>
+</div>
+
+<style>
+  .abg-head {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    margin-bottom: var(--space-4);
+  }
+
+  /* Foto wie ein schief aufgeklebter Sticker mit weißem Rand */
+  .abg-photo {
+    position: relative;
+    width: min(100%, 40rem);
+    rotate: -1.6deg;
+    border: 6px solid var(--abg-paper);
+    border-radius: 20px;
+    background: var(--abg-paper);
+    box-shadow: 0 22px 44px rgb(8 30 60 / 0.38);
+  }
+  .abg-photo img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: 14px;
+  }
+
+  /* „Die neue Tour" als Sticker an der Fotoecke */
+  .abg-kicker {
+    position: absolute;
+    top: -0.9rem;
+    right: -0.5rem;
+    rotate: 4deg;
+    background: var(--abg-paper);
+    color: var(--abg-sky-deep);
+    font-weight: 700;
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    padding: 0.6em 1em;
+    border-radius: 999px;
+    box-shadow: 0 6px 14px rgb(8 30 60 / 0.3);
+  }
+
+  /* Windrad ragt über die linke obere Fotoecke, bleibt mobil im Viewport */
+  .abg-pinwheel {
+    position: absolute;
+    width: clamp(5.4rem, 26vw, 9.5rem);
+    left: clamp(-2.6rem, -3vw, -0.6rem);
+    top: clamp(-2.6rem, -5vw, -1.6rem);
+    rotate: -8deg;
+    filter: drop-shadow(0 8px 10px rgb(8 30 60 / 0.35));
+    overflow: visible;
+  }
+
+  /* Schriftzug überlappt die untere Fotokante (wie auf dem Plakat über dem Motiv) */
+  .abg-wordmark {
+    position: relative;
+    z-index: 1;
+    width: min(100% + 1rem, 58rem);
+    margin: clamp(-2.6rem, -6vw, -1.5rem) -0.5rem 0;
+    rotate: -2deg;
+    line-height: 0;
+  }
+  .abg-wordmark-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 0.35rem 0 rgb(8 30 60 / 0.3));
+  }
+
+  .abg-intro {
+    margin-top: var(--space-3);
+    max-width: 36rem;
+    font-weight: 700;
+    font-size: var(--text-lg);
+    line-height: 1.3;
+    color: #fff;
+    text-wrap: balance;
+    text-shadow: 0 2px 0 rgb(8 30 60 / 0.25);
+  }
+  .abg-intro span {
+    display: block;
+  }
+  .abg-intro em {
+    font-style: normal;
+    background: var(--abg-paper);
+    color: var(--abg-sky-deep);
+    padding: 0.05em 0.35em;
+    border-radius: 0.3em;
+    text-shadow: none;
+    white-space: nowrap;
+  }
+</style>

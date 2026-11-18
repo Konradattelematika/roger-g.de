@@ -9,6 +9,10 @@ Rogers Management pflegt Termine in **System One**. Die Seite holt sie **beim Bu
   von Hero/Marquee/About/index benutzt), Tests `tests/systemone.test.mts`.
 - **Zuordnung** nach Programmname: „Try Out…" → Liste „Termine", „So Freunde…" → „So Freunde!", alles andere →
   eigene Sektion „Neue Termine" mit dem Programmnamen als Annotation (pro Programm eine). Leer → keine Sektion.
+  „Abgeblasen…“ → eigener Abschnitt `#abgeblasen` direkt unter dem Laufband (`theme="abg"`, Kopf `AbgeblasenHead.astro`),
+  erscheint erst mit dem ersten Termin; Hero-CTA, Laufband und Seitentitel schalten dann mit um.
+- **Vorschau mit Testdaten:** `SYSTEMONE_FIXTURE=tests/fixtures/systemone-demo.json npm run build` (bzw. `npm run dev`) –
+  liest fiktive Demo-Termine statt der API (kein Netz, kein Snapshot). Nie deployen; danach normal neu bauen.
 - **Merge (seit 18.11.2026 nur bei eindeutiger Zuordnung):** Kandidat ist ein tour.ts-Eintrag am selben Kalendertag in
   derselben Stadt (erstes Wort, „Halle (Saale)" ≙ „Halle"). Zusammengeführt wird er mit einer System-One-Show nur, wenn
   (a) die Beginnzeit gleich ist – dann auch bei anderem Venue-Namen (Verlegung, andere Schreibweise) – oder

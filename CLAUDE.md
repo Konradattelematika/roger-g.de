@@ -104,3 +104,15 @@ nach jeder gespielten Show neu deployen.
 - `nginx.conf` (Dockerfile kopiert sie): 301 `www.roger-g.de` → Apex, HSTS (ohne includeSubDomains), nosniff, X-Frame-Options.
   Neue `location`-Blöcke mit eigenem `add_header` müssen die Sicherheits-Header wiederholen.
 - Bewusst ohne JSON-LD/mehr Text: Impressum/Datenschutz (Rechtstexte).
+
+## Abgeblasen (neue Tour, Stand 18.11.2026)
+
+- Eigener Abschnitt `#abgeblasen` direkt unter dem Laufband (`TourDates` mit `theme="abg"`, Kopf `AbgeblasenHead.astro`).
+  Termine kommen aus System One (Programmname enthält „Abgeblasen“); der Abschnitt erscheint erst mit dem ersten Termin
+  (Gating in `index.astro`), dann schalten Hero-CTA, Laufband und Seitentitel mit um. Vorschau: `docs/SYSTEMONE.md`
+  („Vorschau mit Testdaten“, `SYSTEMONE_FIXTURE`).
+- Look (Himmelblau #2da3e8, Regenbogenverlauf, weiße Sticker-Karten, Windrad) gilt nur innerhalb `.dates-section--abg`.
+- Assets sind vorläufig: Foto per `scripts/abg-motiv.mjs` (Management-Grafik), Schriftzug-SVG aus der freien Schrift „Anybody“.
+  Finale Grafiken/Schriftzug vom Management stehen aus.
+- Ausgelieferter Code heißt bewusst neutral `abg…` (Klassen, Dateinamen, Selektoren) – der Tourname ist bis zum Vorverkaufsstart vertraulich.
+- Das Repo ist ÖFFENTLICH → nichts zu Abgeblasen pushen, bevor Konrad es freigibt.

@@ -15,9 +15,11 @@ import {
   toBerlinIso,
 } from '../src/lib/systemone.ts';
 import type { SystemOneShow } from '../src/lib/systemone.ts';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { buildShows, fetchSystemOne, loadShows, systemOneQuery } from '../src/data/shows.ts';
 import { machineDate } from '../src/lib/dates.ts';
-import { tourDates, soFreundeDates } from '../src/data/tour.ts';
+import { tourDates, soFreundeDates, abgeblasenDates } from '../src/data/tour.ts';
 import type { TourDate } from '../src/data/tour.ts';
 
 const ROGER = 2105280;
@@ -61,6 +63,9 @@ test('classify + cleanEventName', () => {
   assert.equal(classify('Tryout'), 'tryout');
   assert.equal(classify('So Freunde!'), 'soFreunde');
   assert.equal(classify('Neues Programm'), 'other');
+  assert.equal(classify('Abgeblasen'), 'abgeblasen');
+  assert.equal(classify('Roger G – ABGEBLASEN Tour 2027'), 'abgeblasen');
+  assert.equal(classify('Abgeblasen (Try Out)'), 'tryout');
   assert.equal(cleanEventName('Solo:  WE ARE THE GERMANS'), 'WE ARE THE GERMANS');
   assert.equal(cleanEventName('Preview ALLES WIRD GUT!'), 'ALLES WIRD GUT!');
 });
@@ -478,4 +483,57 @@ test('Beginnzeit unbekannt: timeUnknown im Seitenmodell, machineDate nennt dann 
   );
   assert.equal(known.timeUnknown, undefined);
   assert.equal(machineDate(known), '2027-05-01T19:30:00+02:00');
+});
+
+test('buildShows: Abgeblasen-Show landet im eigenen Abschnitt, other bleibt leer', () => {
+  const s = buildShows([raw({ day: '2027-09-10', city: 'Kiel', production: { name: 'Abgeblasen' } })], 'live');
+  assert.equal(s.abgeblasen.length, abgeblasenDates.length + 1);
+  assert.equal(s.tryout.length, tourDates.length);
+  assert.deepEqual(s.other, []);
+});
+
+test('buildShows: ohne API-Daten = abgeblasenDates aus tour.ts', () => {
+  assert.deepEqual(buildShows([], 'snapshot').abgeblasen, abgeblasenDates);
+});
+
+test('Fixture tests/fixtures/systemone-demo.json: Zuordnung aller Listen', () => {
+  const { data } = JSON.parse(readFileSync(new URL('./fixtures/systemone-demo.json', import.meta.url), 'utf8'));
+  const s = buildShows(data, 'fixture');
+  assert.equal(s.source, 'fixture');
+  assert.equal(s.abgeblasen.length, 6);
+  assert.equal(s.abgeblasen.filter((d) => d.cancelled).length, 1);
+  assert.equal(s.abgeblasen.filter((d) => d.soldOut).length, 1);
+  assert.equal(s.abgeblasen.filter((d) => !d.ticketUrl).length, 1);
+  assert.equal(s.abgeblasen.filter((d) => d.country === 'AT').length, 1);
+  assert.equal(s.abgeblasen.filter((d) => d.timeUnknown).length, 1, 'eine Demo-Show ohne Beginnzeit');
+  // Berlin 08.01.2027 wird mit dem tour.ts-Eintrag zusammengeführt (jetzt mit ticketUrl)
+  assert.equal(s.tryout.length, tourDates.length);
+  assert.ok(s.tryout.find((d) => d.date.startsWith('2027-01-08'))?.ticketUrl);
+  assert.equal(s.other.length, 1);
+});
+
+test('buildShows: Abgeblasen-Doppelshow (Zusatzshow am selben Tag) bleibt zwei Karten', () => {
+  const s = buildShows(
+    [
+      hamburg('17:00 Uhr', 'https://a/', { production: { name: 'Abgeblasen' } }),
+      hamburg('20:30 Uhr', 'https://b/', { production: { name: 'Abgeblasen' } }),
+    ],
+    'live'
+  );
+  assert.deepEqual(slots(s.abgeblasen), ['17:00 https://a/', '20:30 https://b/']);
+});
+
+test('loadShows: SYSTEMONE_FIXTURE liest die Testdaten-Datei – ohne Abruf, mit Warnung', async () => {
+  const calls = { n: 0 };
+  const warnings: string[] = [];
+  const s = await loadShows({
+    fetchImpl: failing(calls),
+    env: { SYSTEMONE_FIXTURE: fileURLToPath(new URL('./fixtures/systemone-demo.json', import.meta.url)) },
+    ...quiet,
+    warn: (m) => warnings.push(m),
+  });
+  assert.equal(s.source, 'fixture');
+  assert.equal(s.abgeblasen.length, 6);
+  assert.equal(calls.n, 0);
+  assert.match(warnings[0], /FIXTURE/);
 });

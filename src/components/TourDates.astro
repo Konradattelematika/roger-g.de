@@ -16,9 +16,11 @@ interface Props {
   dates: TourDate[];
   /** Optionaler Einleitungssatz unter der Headline */
   note?: string;
+  /** Optische Variante: 'abg' = Abgeblasen (Himmelblau, weiße Sticker-Karten; Kopf über den Slot head) */
+  theme?: 'abg';
 }
 
-const { id, heading, annotation, watermark, schemaName, schemaDescription, dates, note } =
+const { id, heading, annotation, watermark, schemaName, schemaDescription, dates, note, theme } =
   Astro.props;
 
 // Datum wie auf dem Plakat: "11 SEP" groß in Bubble, Wochentag + Jahr klein –
@@ -28,6 +30,9 @@ const { id, heading, annotation, watermark, schemaName, schemaDescription, dates
 // Rechte Spalte je Karte: Ticket-Button nur für kommende, nicht ausverkaufte
 // Shows mit ticketUrl („Tickets bald", solange der Link fehlt) – sonst Label
 // „Ausverkauft" und/oder „Vorbei" (beides möglich).
+// Variante theme='abg' (Abgeblasen): eigener Look nur unter .dates-section--abg (Block
+// „Variante abg“ im Style), Körnung als erstes Kind, der Kopf kommt über den Slot head
+// (AbgeblasenHead.astro), das Wasserzeichen entfällt bei leerem `watermark`.
 // Ein Ticketlink für eine gespielte Show wäre falsch. Abgesagte Shows (System One)
 // zeigen „Abgesagt" ohne Button und bleiben gedimmt in der Liste stehen.
 const { upcoming, past } = splitByPast(dates);
@@ -72,14 +77,21 @@ const jsonLd = {
 };
 ---
 
-<section class="section dates-section" id={id} aria-labelledby={`${id}-heading`}>
-  <span class="watermark dates-watermark" aria-hidden="true">{watermark}</span>
+<section
+  class:list={['section', 'dates-section', { 'dates-section--abg': theme === 'abg' }]}
+  id={id}
+  aria-labelledby={`${id}-heading`}
+>
+  {theme === 'abg' && <div class="abg-grain" aria-hidden="true" />}
+  {watermark && <span class="watermark dates-watermark" aria-hidden="true">{watermark}</span>}
 
   <div class="container">
-    <div class="dates-head">
-      <h2 class="display section-title" id={`${id}-heading`}>{heading}</h2>
-      <p class="annotation">{annotation}</p>
-    </div>
+    <slot name="head">
+      <div class="dates-head">
+        <h2 class="display section-title" id={`${id}-heading`}>{heading}</h2>
+        <p class="annotation">{annotation}</p>
+      </div>
+    </slot>
     {note && <p class="dates-note">{note}</p>}
 
     {
@@ -323,5 +335,99 @@ const jsonLd = {
       left: 0.9rem;
       font-size: 1.3rem;
     }
+  }
+
+  /* ───────── Variante abg (Abgeblasen) ─────────
+     Alles unter .dates-section--abg; die Variablen gelten auch für AbgeblasenHead. */
+  .dates-section--abg {
+    --abg-sky: #2da3e8;
+    --abg-sky-deep: #1673c4;
+    --abg-navy: #0e2740;
+    --abg-paper: #f7f6f2;
+    --abg-rainbow: linear-gradient(90deg, #f9ad00 0%, #ee8a10 24%, #e24a2c 46%, #b84a66 62%, #6a78c6 78%, #398ffa 100%);
+    position: relative;
+    overflow: clip;
+    isolation: isolate;
+    background:
+      radial-gradient(46rem 24rem at 88% -4%, rgb(255 255 255 / 0.3), transparent 70%),
+      linear-gradient(180deg, #3aabf0 0%, #2496e2 42%, #1673c4 100%);
+  }
+  .dates-section--abg::before,
+  .dates-section--abg::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    height: 7px;
+    background: var(--abg-rainbow);
+    z-index: 2;
+  }
+  .dates-section--abg::before {
+    top: 0;
+  }
+  .dates-section--abg::after {
+    bottom: 0;
+  }
+  .abg-grain {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.22;
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Karten als weiße Sticker (überschreiben die Basis) */
+  .dates-section--abg .date-row {
+    background: var(--abg-paper);
+    border-color: transparent;
+    color: var(--abg-navy);
+    box-shadow: 0 10px 22px rgb(8 30 60 / 0.24);
+    backdrop-filter: none;
+  }
+  .dates-section--abg .date-row:hover {
+    border-color: transparent;
+    background: var(--abg-paper);
+    box-shadow: 0 18px 34px rgb(8 30 60 / 0.34);
+  }
+  .dates-section--abg .date-row::after {
+    color: rgb(14 39 64 / 0.13);
+  }
+  .dates-section--abg .date-big {
+    color: var(--abg-sky-deep);
+    text-shadow: none;
+  }
+  .dates-section--abg .date-meta,
+  .dates-section--abg .date-past {
+    color: #566b80;
+  }
+  .dates-section--abg .date-city {
+    text-shadow: none;
+  }
+  .dates-section--abg .date-venue {
+    color: #44586c;
+  }
+  .dates-section--abg .date-label {
+    color: var(--abg-navy);
+  }
+  .dates-section--abg .dates-past-title {
+    color: rgb(255 255 255 / 0.9);
+  }
+  .dates-section--abg .date-btn {
+    background: linear-gradient(90deg, #f9ad00, #f08a10);
+    color: var(--abg-navy);
+    box-shadow: 0 6px 14px rgb(190 96 0 / 0.35);
+  }
+  .dates-section--abg .date-btn:hover {
+    background: linear-gradient(90deg, #ffbb1f, #f79a22);
+  }
+  .dates-section--abg .is-past {
+    background: rgb(247 246 242 / 0.7);
+    border: 2px dashed rgb(14 39 64 / 0.28);
+    box-shadow: none;
+  }
+  .dates-section--abg .is-past .date-when,
+  .dates-section--abg .is-past .date-where {
+    opacity: 0.7;
   }
 </style>

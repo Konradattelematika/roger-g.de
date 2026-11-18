@@ -16,7 +16,7 @@ import { nextShow, nextShowLabel } from '../lib/dates';
 // stur tourDates[0], sodass ab dem 12.09.2026 eine gespielte Show als „nächste"
 // live stand. Ohne bevorstehende Show entfällt die Zeile (animations.ts prüft das).
 // Termine aus tour.ts + System One (src/data/shows.ts).
-const { tryout } = await getShows();
+const { tryout, abgeblasen } = await getShows();
 const next = nextShow(tryout.filter((d) => !d.cancelled));
 const nextLabel = next ? nextShowLabel(next) : null;
 ---
@@ -100,7 +100,7 @@ const nextLabel = next ? nextShowLabel(next) : null;
         Sicherheitsnetz. Was floppt, habt nur ihr gesehen.
       </p>
       <div class="hero-actions" data-hero="cta">
-        <a class="btn hero-btn" href="#termine">Zu den Terminen</a>
+        <a class="btn hero-btn" href={abgeblasen.length > 0 ? '#abgeblasen' : '#termine'}>Zu den Terminen</a>
         <div class="burst hero-burst-mobile" data-hero="sticker" aria-hidden="true">
           <svg viewBox="0 0 100 100" aria-hidden="true">
             <polygon

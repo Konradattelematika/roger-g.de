@@ -43,7 +43,7 @@ export interface SystemOneResponse {
 }
 
 /** Welcher Terminliste der Seite eine Show zugeordnet wird. */
-export type ListKey = 'tryout' | 'soFreunde' | 'other';
+export type ListKey = 'tryout' | 'soFreunde' | 'abgeblasen' | 'other';
 
 /** Show aus System One, umgewandelt in das TourDate-Format der Seite. */
 export interface ApiTourDate extends TourDate {
@@ -90,11 +90,15 @@ export function toBerlinIso(dayValue: string, performanceTime?: string | null): 
   return `${day}T${time}:00${berlinOffset(guess)}`;
 }
 
-/** Zuordnung nach Programmname: Try Out → Liste „Termine", So Freunde → „So Freunde!", sonst eigene Liste. */
+/**
+ * Zuordnung nach Programmname (Reihenfolge zählt): Try Out → Liste „Termine",
+ * So Freunde → „So Freunde!", Abgeblasen → eigener Abschnitt, sonst eigene Liste.
+ */
 export function classify(name: string): ListKey {
   const n = name.toLowerCase();
   if (/try[\s-]*out/.test(n)) return 'tryout';
   if (/so[\s,]*freunde/.test(n)) return 'soFreunde';
+  if (/abgeblasen/.test(n)) return 'abgeblasen';
   return 'other';
 }
 

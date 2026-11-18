@@ -3,9 +3,17 @@ import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.astro';
 import Marquee from '../components/Marquee.astro';
 import TourDates from '../components/TourDates.astro';
+import AbgeblasenHead from '../components/AbgeblasenHead.astro';
 import Signup from '../components/Signup.astro';
 import About from '../components/About.astro';
-import { tourName, tourDescription, soFreundeName, soFreundeDescription } from '../data/tour';
+import {
+  tourName,
+  tourDescription,
+  soFreundeName,
+  soFreundeDescription,
+  abgeblasenName,
+  abgeblasenDescription,
+} from '../data/tour';
 import { getShows } from '../data/shows';
 
 // Termine = tour.ts + System One (Build-Zeit, src/data/shows.ts).
@@ -13,17 +21,40 @@ import { getShows } from '../data/shows';
 // neue Tour), bekommen je eine eigene Liste unter den beiden bestehenden –
 // Überschrift „Neue Termine", Programmname als Annotation. Leer → keine Sektion.
 const shows = await getShows();
+// Abgeblasen (neue Tour): eigener Abschnitt direkt unter dem Laufband, erscheint
+// automatisch mit dem ersten Termin (Enthüllung steuert das Management über
+// „sichtbar“ in System One). Dann schalten Hero-CTA, Laufband und Seitentitel mit um.
+const hasAbg = shows.abgeblasen.length > 0;
+const pageTitle = hasAbg
+  ? 'Roger G. – Abgeblasen & Try Out Tour | Termine & Tickets'
+  : 'Roger G. – Try Out Tour 2026 | Termine & Tickets';
+const pageDescription = hasAbg
+  ? 'Roger G. live: alle Termine und Tickets der neuen Tour „Abgeblasen" und der Try Out Tour. Stand-up-Comedy, neues Material, ungefiltert.'
+  : 'Roger G. testet sein neues Comedy-Programm live: Alle Termine und Tickets der Try Out Tour 2026. Kleine Bühnen, neues Material, ungefiltert.';
 const slug = (s: string) =>
   s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'termine';
 ---
 
-<Layout
-  title="Roger G. – Try Out Tour 2026 | Termine & Tickets"
-  description="Roger G. testet sein neues Comedy-Programm live: Alle Termine und Tickets der Try Out Tour 2026. Kleine Bühnen, neues Material, ungefiltert."
->
+<Layout title={pageTitle} description={pageDescription}>
   <main>
     <Hero />
     <Marquee />
+    {
+      hasAbg && (
+        <TourDates
+          id="abgeblasen"
+          theme="abg"
+          heading="Abgeblasen"
+          annotation="Die neue Tour"
+          watermark=""
+          schemaName={abgeblasenName}
+          schemaDescription={abgeblasenDescription}
+          dates={shows.abgeblasen}
+        >
+          <AbgeblasenHead slot="head" headingId="abgeblasen-heading" />
+        </TourDates>
+      )
+    }
     <TourDates
       id="termine"
       heading="Termine"

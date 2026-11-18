@@ -1,0 +1,260 @@
+{
+  "data": [
+    {
+      "id": 9001,
+      "date": {
+        "value": "2027-09-10T00:00:00Z"
+      },
+      "performanceTime": "20:00 Uhr",
+      "eventName": "Solo: Abgeblasen",
+      "status": {
+        "id": 28079,
+        "phase": "D"
+      },
+      "production": {
+        "id": 777,
+        "name": "Abgeblasen"
+      },
+      "artist": {
+        "id": 2105280,
+        "name": "Roger G"
+      },
+      "venue": {
+        "name": "Demo-Halle",
+        "street": "Musterweg 1",
+        "city": "Musterstadt",
+        "postalCode": "12345",
+        "countryCode": "DE"
+      },
+      "tickets": {
+        "url": "https://example.com/tickets/demo-1",
+        "onSaleDate": null,
+        "soldOut": false
+      }
+    },
+    {
+      "id": 9002,
+      "date": {
+        "value": "2027-09-12T00:00:00Z"
+      },
+      "performanceTime": "20:00 Uhr",
+      "eventName": "Solo: Abgeblasen",
+      "status": {
+        "id": 28079,
+        "phase": "D"
+      },
+      "production": {
+        "id": 777,
+        "name": "Abgeblasen"
+      },
+      "artist": {
+        "id": 2105280,
+        "name": "Roger G"
+      },
+      "venue": {
+        "name": "Kulturfabrik Demo",
+        "street": "Musterweg 1",
+        "city": "Beispielhausen",
+        "postalCode": "12345",
+        "countryCode": "DE"
+      },
+      "tickets": {
+        "url": "https://example.com/tickets/demo-2",
+        "onSaleDate": null,
+        "soldOut": true
+      }
+    },
+    {
+      "id": 9003,
+      "date": {
+        "value": "2027-09-14T00:00:00Z"
+      },
+      "performanceTime": "20:00 Uhr",
+      "eventName": "Solo: Abgeblasen",
+      "status": {
+        "id": 28079,
+        "phase": "D"
+      },
+      "production": {
+        "id": 777,
+        "name": "Abgeblasen"
+      },
+      "artist": {
+        "id": 2105280,
+        "name": "Roger G"
+      },
+      "venue": {
+        "name": "Stadthalle Demo",
+        "street": "Musterweg 1",
+        "city": "Langernameshausen-Oberunterbach",
+        "postalCode": "12345",
+        "countryCode": "DE"
+      },
+      "tickets": {
+        "url": "https://example.com/tickets/demo-3",
+        "onSaleDate": null,
+        "soldOut": false
+      }
+    },
+    {
+      "id": 9004,
+      "date": {
+        "value": "2027-09-17T00:00:00Z"
+      },
+      "performanceTime": null,
+      "eventName": "Solo: Abgeblasen",
+      "status": {
+        "id": 28079,
+        "phase": "D"
+      },
+      "production": {
+        "id": 777,
+        "name": "Abgeblasen"
+      },
+      "artist": {
+        "id": 2105280,
+        "name": "Roger G"
+      },
+      "venue": {
+        "name": "Scheune Demo",
+        "street": "Musterweg 1",
+        "city": "Testdorf an der Probe",
+        "postalCode": "12345",
+        "countryCode": "DE"
+      },
+      "tickets": {
+        "url": null,
+        "onSaleDate": null,
+        "soldOut": false
+      }
+    },
+    {
+      "id": 9005,
+      "date": {
+        "value": "2027-09-19T00:00:00Z"
+      },
+      "performanceTime": "19:30 Uhr",
+      "eventName": "Solo: Abgeblasen",
+      "status": {
+        "id": 28079,
+        "phase": "D"
+      },
+      "production": {
+        "id": 777,
+        "name": "Abgeblasen"
+      },
+      "artist": {
+        "id": 2105280,
+        "name": "Roger G"
+      },
+      "venue": {
+        "name": "Stadtsaal Demo",
+        "street": "Musterweg 1",
+        "city": "Wien-Demo",
+        "postalCode": "12345",
+        "countryCode": "AT"
+      },
+      "tickets": {
+        "url": "https://example.com/tickets/demo-5",
+        "onSaleDate": null,
+        "soldOut": false
+      }
+    },
+    {
+      "id": 9006,
+      "date": {
+        "value": "2027-09-21T00:00:00Z"
+      },
+      "performanceTime": "20:00 Uhr",
+      "eventName": "Abgesagt: Abgeblasen",
+      "status": {
+        "id": 28079,
+        "phase": "C"
+      },
+      "production": {
+        "id": 777,
+        "name": "Abgeblasen"
+      },
+      "artist": {
+        "id": 2105280,
+        "name": "Roger G"
+      },
+      "venue": {
+        "name": "Demo-Theater",
+        "street": "Musterweg 1",
+        "city": "Probstadt",
+        "postalCode": "12345",
+        "countryCode": "DE"
+      },
+      "tickets": {
+        "url": "https://example.com/tickets/demo-6",
+        "onSaleDate": null,
+        "soldOut": false
+      }
+    },
+    {
+      "id": 9007,
+      "date": {
+        "value": "2027-01-08T00:00:00Z"
+      },
+      "performanceTime": "20:00 Uhr",
+      "eventName": "Solo: Try Out Tour",
+      "status": {
+        "id": 28079,
+        "phase": "D"
+      },
+      "production": {
+        "id": 777,
+        "name": "Try Out Tour"
+      },
+      "artist": {
+        "id": 2105280,
+        "name": "Roger G"
+      },
+      "venue": {
+        "name": "Mad Monkey Room",
+        "street": "Musterweg 1",
+        "city": "Berlin",
+        "postalCode": "12345",
+        "countryCode": "DE"
+      },
+      "tickets": {
+        "url": "https://example.com/tickets/demo-7",
+        "onSaleDate": null,
+        "soldOut": false
+      }
+    },
+    {
+      "id": 9008,
+      "date": {
+        "value": "2027-10-01T00:00:00Z"
+      },
+      "performanceTime": "20:00 Uhr",
+      "eventName": "Lesung: Demo-Lesung",
+      "status": {
+        "id": 28079,
+        "phase": "D"
+      },
+      "production": {
+        "id": 777,
+        "name": "Demo-Lesung"
+      },
+      "artist": {
+        "id": 2105280,
+        "name": "Roger G"
+      },
+      "venue": {
+        "name": "Demo-Bibliothek",
+        "street": "Musterweg 1",
+        "city": "Musterstadt",
+        "postalCode": "12345",
+        "countryCode": "DE"
+      },
+      "tickets": {
+        "url": "https://example.com/tickets/demo-8",
+        "onSaleDate": null,
+        "soldOut": false
+      }
+    }
+  ]
+}

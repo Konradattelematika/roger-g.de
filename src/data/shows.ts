@@ -13,12 +13,16 @@
 //  3. SYSTEMONE_OFFLINE=1 baut bewusst mit dem committeten Snapshot
 //     src/data/systemone-snapshot.json (`npm run systemone:snapshot`) – nur für Arbeiten
 //     ohne Netz, nicht als Ausfallsicherung.
+//  4. SYSTEMONE_FIXTURE=<json> liest stattdessen eine Testdaten-Datei (kein Netz,
+//     kein Snapshot) – nur für Vorschau/Tests (tests/fixtures/), NIE deployen.
 // Besucher laden NICHTS von System One (kein Drittanbieter-Request im Browser,
 // Datenschutzerklärung bleibt davon unberührt). Folge: neue Termine/Ausverkauft
 // erscheinen erst nach einem neuen Build/Deploy.
+import { readFileSync } from 'node:fs';
 import {
   tourDates,
   soFreundeDates,
+  abgeblasenDates,
 } from './tour.ts';
 import type { TourDate } from './tour.ts';
 import snapshot from './systemone-snapshot.json' with { type: 'json' };
@@ -34,10 +38,12 @@ import type { ExtraList, SystemOneResponse, SystemOneShow } from '../lib/systemo
 export interface Shows {
   tryout: TourDate[];
   soFreunde: TourDate[];
-  /** Programme, die weder Try Out noch So Freunde sind (z. B. eine neue Tour) */
+  /** Neue Tour Abgeblasen (eigener Abschnitt, erscheint erst mit dem ersten Termin) */
+  abgeblasen: TourDate[];
+  /** Programme, die weder Try Out, So Freunde noch Abgeblasen sind (z. B. eine neue Tour) */
   other: ExtraList[];
-  /** Woher die System-One-Daten stammen: live | snapshot */
-  source: 'live' | 'snapshot';
+  /** Woher die System-One-Daten stammen: live | snapshot | fixture (Testdaten) */
+  source: 'live' | 'snapshot' | 'fixture';
   apiCount: number;
   /** Gelieferte Datensätze, die nicht lesbar waren und übersprungen wurden */
   skipped: number;
@@ -94,6 +100,7 @@ export function buildShows(
   return {
     tryout: mergeDates(tourDates, api.filter((a) => a.list === 'tryout'), warn),
     soFreunde: mergeDates(soFreundeDates, api.filter((a) => a.list === 'soFreunde'), warn),
+    abgeblasen: mergeDates(abgeblasenDates, api.filter((a) => a.list === 'abgeblasen'), warn),
     other: groupOther(api),
     source,
     apiCount: api.length,
@@ -141,6 +148,12 @@ export async function loadShows(options: LoadOptions = {}): Promise<Shows> {
     );
     return shows;
   };
+  const fixture = env.SYSTEMONE_FIXTURE;
+  if (fixture) {
+    const data = (JSON.parse(readFileSync(fixture, 'utf8')) as SystemOneResponse).data ?? [];
+    warn(`[systemone] FIXTURE ${fixture} – nur Vorschau/Tests, NICHT deployen`);
+    return buildShows(data, 'fixture', warn);
+  }
   if (env.SYSTEMONE_OFFLINE === '1') return fromSnapshot('SYSTEMONE_OFFLINE=1');
 
   // Abruf und Umwandlung getrennt: ein Netzfehler ist etwas anderes als ein kaputter Datensatz.
