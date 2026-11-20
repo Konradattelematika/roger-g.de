@@ -66,6 +66,8 @@ test('classify + cleanEventName', () => {
   assert.equal(classify('Abgeblasen'), 'abgeblasen');
   assert.equal(classify('Roger G – ABGEBLASEN Tour 2027'), 'abgeblasen');
   assert.equal(classify('Abgeblasen (Try Out)'), 'tryout');
+  assert.equal(classify('Solo: ABGEBLASEN'), 'abgeblasen'); // Titel in System One (Chris, 20.11.2026)
+  assert.equal(cleanEventName('Solo: ABGEBLASEN'), 'ABGEBLASEN');
   assert.equal(cleanEventName('Solo:  WE ARE THE GERMANS'), 'WE ARE THE GERMANS');
   assert.equal(cleanEventName('Preview ALLES WIRD GUT!'), 'ALLES WIRD GUT!');
 });

@@ -15,6 +15,7 @@ import {
   abgeblasenDescription,
 } from '../data/tour';
 import { getShows } from '../data/shows';
+import { hasUpcoming } from '../lib/dates';
 
 // Termine = tour.ts + System One (Build-Zeit, src/data/shows.ts).
 // Programme aus System One, die weder Try Out noch So Freunde sind (z. B. eine
@@ -24,7 +25,7 @@ const shows = await getShows();
 // Abgeblasen (neue Tour): eigener Abschnitt direkt unter dem Laufband, erscheint
 // automatisch mit dem ersten Termin (Enthüllung steuert das Management über
 // „sichtbar“ in System One). Dann schalten Hero-CTA, Laufband und Seitentitel mit um.
-const hasAbg = shows.abgeblasen.length > 0;
+const hasAbg = hasUpcoming(shows.abgeblasen);
 const pageTitle = hasAbg
   ? 'Roger G. – Abgeblasen & Try Out Tour | Termine & Tickets'
   : 'Roger G. – Try Out Tour 2026 | Termine & Tickets';

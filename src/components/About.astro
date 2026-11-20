@@ -5,8 +5,18 @@
 // so stehen sie in Canonical und Sitemap. Ohne Slash antwortet das
 // nginx-Default-Image mit 301 auf http://…/impressum/ und Traefik dann 302 auf https.
 import { getShows } from '../data/shows';
+import { hasUpcoming } from '../lib/dates';
 
-const { tryout: tourDates } = await getShows();
+const { tryout: tourDates, soFreunde, abgeblasen } = await getShows();
+// Gespielte Shows sind ausgeblendet; eine Sektion ohne kommende Show gibt es nicht –
+// der CTA zeigt auf die erste vorhandene Terminliste (neue Tour zuerst).
+const datesHref = hasUpcoming(abgeblasen)
+  ? '#abgeblasen'
+  : hasUpcoming(tourDates)
+    ? '#termine'
+    : hasUpcoming(soFreunde)
+      ? '#so-freunde'
+      : '#anmelden';
 
 // Städte, nicht Shows (Hamburg zweimal) – gleiche Zählung wie in Marquee.astro
 const cityCount = new Set(tourDates.map((d) => d.city)).size;
@@ -45,7 +55,7 @@ const cityCount = new Set(tourDates.map((d) => d.city)).size;
       <p class="cta-sub">
         Schnapp dir Tickets, bevor der Gag wieder gestrichen wird.
       </p>
-      <a class="btn cta-btn" href="#termine">Alle Termine ansehen</a>
+      <a class="btn cta-btn" href={datesHref}>Alle Termine ansehen</a>
     </aside>
   </div>
 </section>

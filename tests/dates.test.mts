@@ -12,6 +12,7 @@ import {
   parseIso,
   posterDate,
   splitByPast,
+  hasUpcoming,
 } from '../src/lib/dates.ts';
 import type { TourDate } from '../src/data/tour.ts';
 
@@ -131,4 +132,12 @@ test('splitByPast: bevorstehende zuerst, gespielte darunter – beide Gruppen ch
   assert.deepEqual(splitByPast(dates, new Date('2027-04-01T12:00:00Z')).upcoming, []);
   assert.deepEqual(splitByPast([], new Date()), { upcoming: [], past: [] });
   assert.equal(dates[0].city, 'Hamburg', 'Eingabe bleibt unsortiert');
+});
+
+test('hasUpcoming: Sektion nur mit mindestens einer kommenden Show (Showtag zählt mit)', () => {
+  const dates = [show('2026-10-10T20:00:00+02:00', 'Saarlouis'), show('2027-01-08T20:00:00+01:00', 'Berlin')];
+  assert.equal(hasUpcoming(dates, new Date('2026-11-20T12:00:00Z')), true);
+  assert.equal(hasUpcoming(dates, new Date('2027-01-08T22:30:00Z')), true);
+  assert.equal(hasUpcoming(dates, new Date('2027-01-09T12:00:00Z')), false);
+  assert.equal(hasUpcoming([], new Date()), false);
 });

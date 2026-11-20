@@ -9,16 +9,27 @@
 // Der Burst-Sticker existiert zweimal (Flow-Element mobil / Poster-Ecke
 // Desktop), sichtbar ist immer nur einer.
 import { getShows } from '../data/shows';
-import { nextShow, nextShowLabel } from '../lib/dates';
+import { hasUpcoming, nextShow, nextShowLabel } from '../lib/dates';
 
 // „Nächste Show" = früheste noch nicht vergangene Show (Berliner Kalendertag,
 // zur Build-Zeit ausgewertet → nach jeder Show neu deployen). Vorher stand hier
 // stur tourDates[0], sodass ab dem 12.09.2026 eine gespielte Show als „nächste"
 // live stand. Ohne bevorstehende Show entfällt die Zeile (animations.ts prüft das).
 // Termine aus tour.ts + System One (src/data/shows.ts).
-const { tryout, abgeblasen } = await getShows();
+const { tryout, soFreunde, abgeblasen } = await getShows();
 const next = nextShow(tryout.filter((d) => !d.cancelled));
 const nextLabel = next ? nextShowLabel(next) : null;
+// Neue Tour im Vordergrund (20.11.2026): sobald sie kommende Termine hat, werben
+// Kicker und Haupt-CTA für sie. Gespielte Shows blendet TourDates aus – eine Sektion
+// ohne kommende Show existiert nicht, deshalb zeigt der CTA nur auf vorhandene Anker.
+const hasAbg = hasUpcoming(abgeblasen);
+const datesHref = hasAbg
+  ? '#abgeblasen'
+  : hasUpcoming(tryout)
+    ? '#termine'
+    : hasUpcoming(soFreunde)
+      ? '#so-freunde'
+      : '#anmelden';
 ---
 
 <header class="hero">
@@ -85,7 +96,9 @@ const nextLabel = next ? nextShowLabel(next) : null;
     <div class="hero-scrim" aria-hidden="true"></div>
 
     <div class="hero-top">
-      <p class="hero-kicker" data-hero="kicker">Stand Up Comedy · Neues Programm</p>
+      <p class="hero-kicker" data-hero="kicker">
+        {hasAbg ? 'Neue Tour: Abgeblasen' : 'Stand Up Comedy · Neues Programm'}
+      </p>
       <h1 class="hero-title">
         <span class="display hero-name" data-hero="name">Roger&nbsp;G.</span>
         <span class="subline hero-tour" data-hero="line">
@@ -100,7 +113,7 @@ const nextLabel = next ? nextShowLabel(next) : null;
         Sicherheitsnetz. Was floppt, habt nur ihr gesehen.
       </p>
       <div class="hero-actions" data-hero="cta">
-        <a class="btn hero-btn" href={abgeblasen.length > 0 ? '#abgeblasen' : '#termine'}>Zu den Terminen</a>
+        <a class="btn hero-btn" href={datesHref}>{hasAbg ? 'Tickets für die neue Tour' : 'Zu den Terminen'}</a>
         <div class="burst hero-burst-mobile" data-hero="sticker" aria-hidden="true">
           <svg viewBox="0 0 100 100" aria-hidden="true">
             <polygon

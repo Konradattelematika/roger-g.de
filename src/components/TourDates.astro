@@ -25,26 +25,23 @@ const { id, heading, annotation, watermark, schemaName, schemaDescription, dates
 
 // Datum wie auf dem Plakat: "11 SEP" groß in Bubble, Wochentag + Jahr klein –
 // posterDate() rechnet in Europe/Berlin (src/lib/dates.ts).
-// Kommende Shows stehen oben, gespielte darunter unter „Schon gespielt"
-// (Berliner Kalendertag, zur Build-Zeit → nach jeder Show neu deployen).
-// Rechte Spalte je Karte: Ticket-Button nur für kommende, nicht ausverkaufte
-// Shows mit ticketUrl („Tickets bald", solange der Link fehlt) – sonst Label
-// „Ausverkauft" und/oder „Vorbei" (beides möglich).
+// Gezeigt werden nur kommende Shows; gespielte fallen ganz weg (Wunsch Management/
+// Konrad, 20.11.2026 – auch aus dem JSON-LD). Entschieden wird am Berliner
+// Kalendertag zur Build-Zeit (täglicher Rebuild). Ohne kommende Show rendert die
+// Sektion gar nicht – Links auf ihren Anker prüfen (Hero.astro, About.astro).
+// Rechte Spalte je Karte: Ticket-Button für nicht ausverkaufte Shows mit ticketUrl
+// („Tickets bald", solange der Link fehlt) – sonst Label „Ausverkauft".
 // Variante theme='abg' (Abgeblasen): eigener Look nur unter .dates-section--abg (Block
 // „Variante abg“ im Style), Körnung als erstes Kind, der Kopf kommt über den Slot head
 // (AbgeblasenHead.astro), das Wasserzeichen entfällt bei leerem `watermark`.
-// Ein Ticketlink für eine gespielte Show wäre falsch. Abgesagte Shows (System One)
-// zeigen „Abgesagt" ohne Button und bleiben gedimmt in der Liste stehen.
-const { upcoming, past } = splitByPast(dates);
-const groups = [
-  { shows: upcoming, isPast: false },
-  { shows: past, isPast: true },
-].filter((g) => g.shows.length > 0);
+// Abgesagte Shows (System One) zeigen „Abgesagt" ohne Button und bleiben bis zu
+// ihrem Datum gedimmt in der Liste stehen.
+const { upcoming } = splitByPast(dates);
 
 // Schema.org: eine ComedyEvent-Entity pro Termin → Rich Results in Google
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@graph': dates.map((d) => ({
+  '@graph': upcoming.map((d) => ({
     '@type': 'ComedyEvent',
     name: `${schemaName} – ${d.city}`,
     description: schemaDescription,
@@ -77,6 +74,8 @@ const jsonLd = {
 };
 ---
 
+{upcoming.length > 0 && (
+<Fragment>
 <section
   class:list={['section', 'dates-section', { 'dates-section--abg': theme === 'abg' }]}
   id={id}
@@ -94,49 +93,37 @@ const jsonLd = {
     </slot>
     {note && <p class="dates-note">{note}</p>}
 
-    {
-      groups.map((g) => (
-        <Fragment>
-          {/* Bewusst keine <h3>: die h2 ist bis zum Scrollen per GSAP versteckt
-              (autoAlpha), dann sähe die Gliederung h1 → h3 aus (Lighthouse heading-order) */}
-          {g.isPast && (
-            <p class="dates-past-title" id={`${id}-past`}>
-              Schon gespielt
+    <ol class="dates">
+      {upcoming.map((d) => (
+        <li class:list={['date-row', { 'is-past': d.cancelled }]}>
+          <time class="date-when" datetime={machineDate(d)}>
+            <span class="date-big">{posterDate(d.date).big}</span>
+            <span class="date-meta">{posterDate(d.date).meta}</span>
+          </time>
+          <div class="date-where">
+            <span class="date-city">{d.city}</span>
+            <span class="date-venue">{d.venue}</span>
+          </div>
+          {!d.soldOut && !d.cancelled && d.ticketUrl ? (
+            <a class="btn date-btn" href={d.ticketUrl} target="_blank" rel="noopener">
+              Tickets für {d.city}
+            </a>
+          ) : (
+            <p class="date-status">
+              {d.cancelled && <span class="date-label">Abgesagt</span>}
+              {!d.cancelled && d.soldOut && <span class="date-label">Ausverkauft</span>}
+              {!d.cancelled && !d.soldOut && <span class="date-label">Tickets bald</span>}
             </p>
           )}
-          <ol class="dates" aria-labelledby={g.isPast ? `${id}-past` : undefined}>
-            {g.shows.map((d) => (
-              <li class:list={['date-row', { 'is-past': g.isPast || d.cancelled }]}>
-                <time class="date-when" datetime={machineDate(d)}>
-                  <span class="date-big">{posterDate(d.date).big}</span>
-                  <span class="date-meta">{posterDate(d.date).meta}</span>
-                </time>
-                <div class="date-where">
-                  <span class="date-city">{d.city}</span>
-                  <span class="date-venue">{d.venue}</span>
-                </div>
-                {!g.isPast && !d.soldOut && !d.cancelled && d.ticketUrl ? (
-                  <a class="btn date-btn" href={d.ticketUrl} target="_blank" rel="noopener">
-                    Tickets für {d.city}
-                  </a>
-                ) : (
-                  <p class="date-status">
-                    {d.cancelled && <span class="date-label">Abgesagt</span>}
-                    {!d.cancelled && d.soldOut && <span class="date-label">Ausverkauft</span>}
-                    {!d.cancelled && !d.soldOut && !g.isPast && <span class="date-label">Tickets bald</span>}
-                    {g.isPast && <span class="date-past">Vorbei</span>}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ol>
-        </Fragment>
-      ))
-    }
+        </li>
+      ))}
+    </ol>
   </div>
 </section>
 
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+</Fragment>
+)}
 
 <style>
   .dates-section {
@@ -182,15 +169,6 @@ const jsonLd = {
     padding: 0;
     display: grid;
     gap: var(--space-2);
-  }
-
-  .dates-past-title {
-    margin: var(--space-4) 0 var(--space-2);
-    color: var(--ink-dim);
-    font-size: var(--text-sm);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
   }
 
   /* Plakat-Übersetzung: Datum in Pink-Bubble, Stadt/Venue in fettem Weiß.
@@ -276,7 +254,7 @@ const jsonLd = {
     font-weight: 600;
   }
 
-  /* Gespielte Shows treten zurück; das Label rechts bleibt voll sichtbar */
+  /* Abgesagte Shows treten zurück; das Label rechts bleibt voll sichtbar */
   .is-past {
     background: rgb(255 255 255 / 0.05);
     border-style: dashed;
@@ -296,14 +274,6 @@ const jsonLd = {
     color: var(--pink);
     font-family: var(--font-display);
     text-transform: uppercase;
-  }
-
-  .date-past {
-    color: var(--ink-dim);
-    font-size: var(--text-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
   }
 
   /* Mobil: Ticket-Button volle Breite → klare Tap-Fläche */
@@ -409,9 +379,6 @@ const jsonLd = {
   }
   .dates-section--abg .date-label {
     color: var(--abg-navy);
-  }
-  .dates-section--abg .dates-past-title {
-    color: rgb(255 255 255 / 0.9);
   }
   .dates-section--abg .date-btn {
     background: linear-gradient(90deg, #f9ad00, #f08a10);

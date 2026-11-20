@@ -3,6 +3,7 @@
 // der Inhalt steht sinngemäß bereits im Hero/Copy.
 // Für den nahtlosen Loop wird die Item-Liste zweimal gerendert (translateX -50%).
 import { getShows } from '../data/shows';
+import { hasUpcoming } from '../lib/dates';
 
 interface Props {
   /** Rotation des Bands, z. B. "-1.2deg" (Default) oder "1deg" */
@@ -12,7 +13,7 @@ const { rotate = '-1.2deg' } = Astro.props;
 const { tryout: tourDates, abgeblasen } = await getShows();
 
 const items = [
-  ...(abgeblasen.length > 0 ? ['Neue Tour: Abgeblasen'] : []),
+  ...(hasUpcoming(abgeblasen) ? ['Neue Tour: Abgeblasen'] : []),
   'Try Out Tour 26',
   'Neues Material',
   'Null Sicherheitsnetz',

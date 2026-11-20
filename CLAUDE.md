@@ -105,6 +105,16 @@ nach jeder gespielten Show neu deployen.
   Neue `location`-Blöcke mit eigenem `add_header` müssen die Sicherheits-Header wiederholen.
 - Bewusst ohne JSON-LD/mehr Text: Impressum/Datenschutz (Rechtstexte).
 
+## Nur kommende Termine (seit 20.11.2026)
+
+- Gespielte Shows werden nicht mehr angezeigt (Wunsch Management, Entscheidung Konrad) – weder als Karte noch im JSON-LD.
+  `TourDates.astro` rendert nur `splitByPast().upcoming`; eine Liste ohne kommende Show rendert gar keine Sektion.
+  Links auf Terminanker deshalb über `hasUpcoming()` (`src/lib/dates.ts`) wählen – siehe `Hero.astro`, `About.astro`.
+- Die gespielten Termine bleiben in `src/data/tour.ts` (Städtezahl in Laufband/About, Archiv). `docs/NAVIGATION.md`
+  beschreibt an einigen Stellen noch „Schon gespielt"/„Vorbei" – das gilt nicht mehr.
+- Sobald Abgeblasen kommende Termine hat, werben Hero-Kicker und Haupt-CTA („Tickets für die neue Tour") dafür.
+  Das Hero-Motiv bleibt das Try-Out-Plakat, bis die finalen Grafiken da sind (angefragt bei Celler).
+
 ## Abgeblasen (neue Tour, Stand 18.11.2026)
 
 - Eigener Abschnitt `#abgeblasen` direkt unter dem Laufband (`TourDates` mit `theme="abg"`, Kopf `AbgeblasenHead.astro`).

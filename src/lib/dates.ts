@@ -98,6 +98,11 @@ export function splitByPast(
   };
 }
 
+/** Hat die Liste mindestens eine noch nicht gespielte Show? Nur dann rendert ihre Sektion (TourDates.astro). */
+export function hasUpcoming(dates: TourDate[], now: Date = new Date(), timeZone = BERLIN): boolean {
+  return dates.some((d) => !isPast(d.date, now, timeZone));
+}
+
 /**
  * Maschinenlesbares Datum einer Show für JSON-LD (`startDate`) und `<time datetime>`:
  * mit Uhrzeit – außer die Beginnzeit ist unbekannt (`timeUnknown`), dann nur der Kalendertag.
